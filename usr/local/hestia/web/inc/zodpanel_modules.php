@@ -102,7 +102,7 @@ function zodpanel_module_cards(string $user, array $panelUser): array {
             'title' => _('File Manager'),
             'description' => _('Browse, upload, edit, compress, and manage website files.'),
             'icon' => 'fa-folder-open',
-            'href' => '/fm/',
+            'href' => '/fm/domains/',
             'meta' => _('Browser file workspace'),
         ],
         'webmail' => [

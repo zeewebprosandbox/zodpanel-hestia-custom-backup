@@ -210,6 +210,16 @@ $dist_config["services"]["Filegator\Services\Storage\Filesystem"]["config"][
 	}
 
 	$root = "/home/" . $v_user;
+	$requested_domain = $_GET["domain"] ?? $_SESSION["FM_DOMAIN"] ?? "";
+	$requested_domain = strtolower(trim((string) $requested_domain));
+	if ($requested_domain !== "" && preg_match('/^(?!-)[a-z0-9.-]+(?<!-)$/', $requested_domain)) {
+		$domain_root = "/home/" . basename($v_user) . "/web/" . basename($requested_domain) . "/public_html";
+		$real_domain_root = realpath($domain_root);
+		if ($real_domain_root !== false && is_dir($real_domain_root) && str_starts_with($real_domain_root, "/home/" . basename($v_user) . "/web/")) {
+			$root = $real_domain_root;
+			$_SESSION["FM_DOMAIN"] = $requested_domain;
+		}
+	}
 
 	return new \League\Flysystem\Sftp\SftpAdapter([
 		"host" => "127.0.0.1",

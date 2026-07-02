@@ -252,6 +252,16 @@
 								<span class="u-hide-desktop"><?= tohtml( _("Visit")) ?></span>
 							</a>
 						</li>
+						<li class="units-table-row-action" data-key-action="href">
+							<a
+								class="units-table-row-action-link"
+								href="/fm/?<?= tohtml(http_build_query(["domain" => $key])) ?>"
+								title="<?= tohtml( _("Open public_html")) ?>"
+							>
+								<i class="fas fa-folder-open icon-yellow"></i>
+								<span class="u-hide-desktop"><?= tohtml( _("Files")) ?></span>
+							</a>
+						</li>
 						<?php if ($read_only !== "true") { ?>
 								<?php if ($data[$key]["SUSPENDED"] == "no") { ?>
 									<li class="units-table-row-action shortcut-enter" data-key-action="href">
