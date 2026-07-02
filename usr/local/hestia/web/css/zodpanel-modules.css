@@ -1,0 +1,83 @@
+.zod-modules-summary {
+    align-items: center;
+    background: color-mix(in srgb, var(--color-background-secondary, #f4f6f8) 88%, #ffffff 12%);
+    border: 1px solid var(--color-border, #dfe3e8);
+    border-radius: 8px;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    margin: 20px 0;
+    padding: 18px 20px;
+}
+.zod-modules-summary h2 { margin: 0; }
+.zod-modules-summary p { margin: 0; max-width: 560px; }
+.zod-modules-eyebrow {
+    color: var(--color-text-secondary, #64748b);
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.zod-modules-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    margin-bottom: 24px;
+}
+.zod-module-card {
+    align-items: flex-start;
+    background: var(--color-background, #fff);
+    border: 1px solid var(--color-border, #dfe3e8);
+    border-radius: 8px;
+    color: inherit;
+    display: flex;
+    gap: 14px;
+    min-height: 128px;
+    padding: 16px;
+    text-decoration: none;
+}
+.zod-module-card:hover {
+    border-color: var(--color-primary, #2f7cf6);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
+    text-decoration: none;
+}
+.zod-module-card-icon {
+    align-items: center;
+    background: var(--color-background-secondary, #f4f6f8);
+    border-radius: 8px;
+    display: inline-flex;
+    flex: 0 0 42px;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+.zod-module-card-icon i { font-size: 18px; }
+.zod-module-card-body { display: grid; gap: 6px; }
+.zod-module-card-body strong { font-size: 16px; }
+.zod-module-card-body small { color: var(--color-text-secondary, #64748b); line-height: 1.45; }
+.zod-module-card-body em { color: var(--color-primary, #2f7cf6); font-style: normal; font-weight: 700; }
+.zod-modules-limits {
+    border-top: 1px solid var(--color-border, #dfe3e8);
+    padding-top: 18px;
+}
+.zod-modules-limit-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.zod-modules-limit-grid div {
+    background: var(--color-background-secondary, #f4f6f8);
+    border-radius: 8px;
+    padding: 12px;
+}
+.zod-modules-limit-grid span {
+    color: var(--color-text-secondary, #64748b);
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+.zod-modules-limit-grid strong { font-size: 16px; }
+@media (max-width: 680px) {
+    .zod-modules-summary { align-items: flex-start; flex-direction: column; }
+}

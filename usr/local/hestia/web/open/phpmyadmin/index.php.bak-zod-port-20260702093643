@@ -1,0 +1,60 @@
+<?php
+$TAB = "DB";
+
+// Main include
+include $_SERVER["DOCUMENT_ROOT"] . "/inc/main.php";
+
+function zod_clear_phpmyadmin_session_cookies(string $pmaPath): void {
+	$paths = array_values(array_unique(["/", $pmaPath, rtrim($pmaPath, "/") . "/"]));
+	$cookieNames = ["SignonSession", "phpMyAdmin", "pma_lang"];
+
+	foreach (array_keys($_COOKIE) as $cookieName) {
+		if (stripos($cookieName, "pma") === 0 || stripos($cookieName, "phpmyadmin") !== false) {
+			$cookieNames[] = $cookieName;
+		}
+	}
+
+	foreach (array_unique($cookieNames) as $cookieName) {
+		foreach ($paths as $path) {
+			setcookie($cookieName, "", time() - 3600, $path, "", true, true);
+		}
+	}
+}
+
+[$http_host, $port] = explode(":", $_SERVER["HTTP_HOST"] . ":");
+$pma_path = "/phpmyadmin/";
+
+if (!empty($_SESSION["DB_PMA_ALIAS"])) {
+	$pma_path = "/" . trim($_SESSION["DB_PMA_ALIAS"], "/") . "/";
+}
+
+$pma_url = "https://" . $http_host . $pma_path;
+
+if (ipUsed() || empty($_SESSION["PHPMYADMIN_KEY"])) {
+	header("Location: " . $pma_url);
+	exit();
+}
+
+$database = "__all__";
+$time = time();
+$hestia_sso_token = password_hash(
+	$database . $user_plain . $_SESSION["user_combined_ip"] . $time . $_SESSION["PHPMYADMIN_KEY"],
+	PASSWORD_DEFAULT,
+);
+
+zod_clear_phpmyadmin_session_cookies($pma_path);
+
+header(
+	"Location: " .
+		$pma_url .
+		"hestia-sso.php?" .
+		http_build_query([
+			"database" => $database,
+			"user" => $user_plain,
+			"exp" => $time,
+			"hestia_token" => $hestia_sso_token,
+			"zod_all" => 1,
+			"zod_clear" => time(),
+		]),
+);
+exit();

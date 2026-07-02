@@ -1,0 +1,70 @@
+#!/bin/bash
+# info: add temporary phpMyAdmin user for all active MySQL databases owned by a Hestia user
+# options: USER [TTL]
+
+set -e
+
+user=${1:-}
+ttl=${2:-60}
+
+if [[ -z "$user" || ! "$user" =~ ^[A-Za-z0-9._-]+$ || ! "$ttl" =~ ^[0-9]+$ ]]; then
+  echo "Error: invalid arguments" >&2
+  exit 1
+fi
+
+HESTIA=${HESTIA:-/usr/local/hestia}
+BIN="$HESTIA/bin"
+conf="$HESTIA/data/users/$user/db.conf"
+
+if [[ ! -f "$conf" ]]; then
+  echo "Error: database config not found" >&2
+  exit 2
+fi
+
+if [[ -f /usr/local/hestia/func/main.sh ]]; then
+  # shellcheck source=/usr/local/hestia/func/main.sh
+  source /usr/local/hestia/func/main.sh
+fi
+
+gen_pass() {
+  if declare -F generate_password >/dev/null; then
+    generate_password
+  else
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24
+    echo
+  fi
+}
+
+dbuser="hestia_all_$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 10)"
+dbpass="$(gen_pass)"
+created=0
+
+mysql_exec() {
+  mysql --defaults-extra-file=/root/.my.cnf -NBe "$1"
+}
+
+mysql_exec "CREATE USER \`$dbuser\`@'localhost' IDENTIFIED BY '$dbpass'"
+
+while IFS= read -r line; do
+  [[ -z "$line" ]] && continue
+  eval "$line"
+  if [[ "${TYPE:-}" != "mysql" || "${SUSPENDED:-no}" == "yes" || -z "${DB:-}" ]]; then
+    continue
+  fi
+  mysql_exec "GRANT ALL ON \`$DB\`.* TO \`$dbuser\`@'localhost'"
+  created=$((created + 1))
+done < "$conf"
+
+if [[ "$created" -eq 0 ]]; then
+  mysql_exec "DROP USER IF EXISTS \`$dbuser\`@'localhost'"
+  echo "Error: no active MySQL databases" >&2
+  exit 3
+fi
+
+mysql_exec "FLUSH PRIVILEGES"
+
+if [[ "$ttl" -gt 0 ]]; then
+  echo "mysql --defaults-extra-file=/root/.my.cnf -NBe \"DROP USER IF EXISTS \\\`$dbuser\\\`@'localhost'; FLUSH PRIVILEGES\"" | at "now +${ttl} minute" >/dev/null 2>&1 || true
+fi
+
+printf '{"login":{"user":"%s","password":"%s","host":"localhost","databases":%s}}\n' "$dbuser" "$dbpass" "$created"

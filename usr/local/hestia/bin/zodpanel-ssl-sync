@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENV_FILE="${ENV_FILE:-/etc/whmpanel/node.env}"
+LOCK_FILE="${LOCK_FILE:-/tmp/zodpanel-ssl-sync.lock}"
+
+if [ ! -r "$ENV_FILE" ]; then
+  exit 0
+fi
+
+set -a
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+set +a
+
+TOKEN="${WHMPANEL_NODE_TOKEN:-}"
+BASE_URL="${WHMPANEL_PUBLIC_URL:-https://127.0.0.1:8083}"
+
+if [ -z "$TOKEN" ]; then
+  exit 0
+fi
+
+flock -n "$LOCK_FILE" curl -k -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -X POST \
+  "${BASE_URL%/}/api/whmlab/index.php?endpoint=ssl/sync" \
+  --data '{}' >/dev/null

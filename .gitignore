@@ -1,0 +1,16 @@
+.DS_Store
+*.tar
+*.tar.gz
+*.zip
+*.log
+*.key
+*.pem
+*.crt
+*.csr
+*.sql
+*.sqlite
+*.bak-secret
+tmp/
+cache/
+sessions/
+logs/

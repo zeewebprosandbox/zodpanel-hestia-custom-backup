@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PACKAGE="${1:-}"
+SOURCE="${2:-}"
+if [[ ! "$PACKAGE" =~ ^[a-z0-9_][a-z0-9_.-]{0,63}$ ]]; then
+  echo "Error: invalid package name" >&2
+  exit 1
+fi
+if [[ ! -f "$SOURCE" ]]; then
+  echo "Error: feature source file missing" >&2
+  exit 1
+fi
+TARGET="/usr/local/hestia/data/packages/${PACKAGE}.features.json"
+install -o root -g root -m 0644 "$SOURCE" "$TARGET"
