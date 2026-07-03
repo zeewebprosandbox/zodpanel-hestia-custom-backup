@@ -259,12 +259,19 @@ function whmpanel_domain_diagnostics(string $user, string $domain): array {
 	$webData = $web["data"][$domain] ?? [];
 	$mail = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
 	$mailData = $mail["data"][$domain] ?? [];
-	$webmailHost = "webmail." . $domain;
+	$mailHost = "mail." . $domain;
+	$webmailHost = whmpanel_webmail_host($domain);
 	$publicNs = dns_get_record($domain, DNS_NS) ?: [];
 	$publicNsValues = array_map(fn($record) => rtrim((string) ($record["target"] ?? ""), "."), $publicNs);
-	$publicA = gethostbyname($domain);
-	$webmailA = gethostbyname($webmailHost);
-	$nodeWebmailA = trim((string) shell_exec("dig @127.0.0.1 +short A " . escapeshellarg($webmailHost) . " 2>/dev/null | head -1"));
+	$domainA = whmpanel_dns_a_values($domain);
+	$mailA = whmpanel_dns_a_values($mailHost);
+	$webmailA = whmpanel_dns_a_values($webmailHost);
+	$publicA = $domainA[0] ?? null;
+	$publicMailA = $mailA[0] ?? null;
+	$publicWebmailA = $webmailA[0] ?? null;
+	$domainPoints = whmpanel_dns_points_here($domain, $nodeIp);
+	$mailPoints = whmpanel_dns_points_here($mailHost, $nodeIp);
+	$webmailPoints = whmpanel_dns_points_here($webmailHost, $nodeIp);
 
 	return [
 		"user" => $user,
@@ -277,7 +284,7 @@ function whmpanel_domain_diagnostics(string $user, string $domain): array {
 			"letsencrypt" => ($webData["LETSENCRYPT"] ?? "no") === "yes",
 			"force_https" => ($webData["SSL_FORCE"] ?? "no") === "yes",
 			"public_a" => $publicA,
-			"points_to_node" => $publicA === $nodeIp,
+			"points_to_node" => $domainPoints,
 		],
 		"mail" => [
 			"exists" => $mail["success"],
@@ -285,12 +292,14 @@ function whmpanel_domain_diagnostics(string $user, string $domain): array {
 			"webmail" => $mailData["WEBMAIL"] ?? null,
 			"webmail_alias" => $mailData["WEBMAIL_ALIAS"] ?? "webmail",
 			"webmail_url" => whmpanel_webmail_url($domain),
+			"mail_url" => "https://" . $mailHost . "/",
 		],
 		"dns" => [
 			"public_nameservers" => $publicNsValues,
-			"public_webmail_a" => $webmailA === $webmailHost ? null : $webmailA,
-			"node_webmail_a" => $nodeWebmailA ?: null,
-			"webmail_points_to_node" => $webmailA === $nodeIp,
+			"public_mail_a" => $publicMailA,
+			"public_webmail_a" => $publicWebmailA,
+			"mail_points_to_node" => $mailPoints,
+			"webmail_points_to_node" => $webmailPoints,
 			"required_records" => [
 				["name" => "@", "type" => "A", "value" => $nodeIp],
 				["name" => "www", "type" => "CNAME", "value" => $domain . "."],
@@ -300,23 +309,45 @@ function whmpanel_domain_diagnostics(string $user, string $domain): array {
 			],
 		],
 		"blockers" => array_values(array_filter([
-			$publicA !== $nodeIp ? "Root domain does not resolve to node IP {$nodeIp}." : null,
-			$webmailA !== $nodeIp ? "webmail.{$domain} does not publicly resolve to node IP {$nodeIp}." : null,
+			!$domainPoints ? "Root domain does not resolve to node IP {$nodeIp}." : null,
+			!$mailPoints ? "mail.{$domain} does not resolve to node IP {$nodeIp}." : null,
+			!$webmailPoints ? "{$webmailHost} does not resolve to node IP {$nodeIp}." : null,
 			!$mail["success"] ? "Mail domain has not been created in ZodPanel." : null,
 			$mail["success"] && (($mailData["SSL"] ?? "no") !== "yes") ? "Mail/webmail SSL is not enabled yet." : null,
 		])),
 	];
 }
 
-function whmpanel_dns_points_here(string $domain, string $ip): bool {
-	$records = dns_get_record($domain, DNS_A);
-	foreach ($records ?: [] as $record) {
-		if (($record["ip"] ?? null) === $ip) {
-			return true;
+function whmpanel_dns_a_values(string $domain): array {
+	$domain = whmpanel_domain($domain);
+	if ($domain === "") {
+		return [];
+	}
+
+	$values = [];
+	foreach (dns_get_record($domain, DNS_A) ?: [] as $record) {
+		if (!empty($record["ip"])) {
+			$values[] = (string) $record["ip"];
 		}
 	}
 
-	return gethostbyname($domain) === $ip;
+	$fallback = gethostbyname($domain);
+	if ($fallback !== $domain) {
+		$values[] = $fallback;
+	}
+
+	$nodeRecords = trim((string) shell_exec("dig @127.0.0.1 +short A " . escapeshellarg($domain) . " 2>/dev/null"));
+	foreach (preg_split('/\s+/', $nodeRecords) ?: [] as $record) {
+		if (filter_var($record, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+			$values[] = $record;
+		}
+	}
+
+	return array_values(array_unique(array_filter($values)));
+}
+
+function whmpanel_dns_points_here(string $domain, string $ip): bool {
+	return in_array($ip, whmpanel_dns_a_values($domain), true);
 }
 
 function whmpanel_package_features_path(string $name): string {
@@ -369,10 +400,105 @@ function whmpanel_package_file(array $input): array {
 }
 
 function whmpanel_webmail_url(string $domain): string {
+	return "https://" . whmpanel_webmail_host($domain) . "/";
+}
+
+function whmpanel_webmail_host(string $domain): string {
 	$features = whmpanel_system_features();
 	$alias = whmpanel_domain((string) ($features["webmail_alias"] ?? "webmail")) ?: "webmail";
 
-	return "https://" . $alias . "." . whmpanel_domain($domain) . "/";
+	return $alias . "." . whmpanel_domain($domain);
+}
+
+function whmpanel_sync_mail_ssl(string $user, string $domain, string $nodeIp): array {
+	$domain = whmpanel_domain($domain);
+	$mailHost = "mail." . $domain;
+	$webmailHost = whmpanel_webmail_host($domain);
+	$mailPoints = whmpanel_dns_points_here($mailHost, $nodeIp);
+	$webmailPoints = whmpanel_dns_points_here($webmailHost, $nodeIp);
+	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+	$mailData = $mailDomain["data"][$domain] ?? [];
+	$hasSsl = ($mailData["SSL"] ?? "no") === "yes";
+
+	if (!$mailDomain["success"]) {
+		return [
+			"installed" => false,
+			"message" => "Mail SSL skipped because the mail domain does not exist.",
+			"mail_host" => $mailHost,
+			"webmail_host" => $webmailHost,
+			"dns_ready" => false,
+		];
+	}
+
+	if (empty($mailData["WEBMAIL"])) {
+		$features = whmpanel_system_features();
+		$clients = $features["webmail_clients"] ?? [];
+		$client = (string) ($clients[0] ?? "roundcube");
+		$webmail = whmpanel_run_soft(["v-add-mail-domain-webmail", $user, $domain, $client, "yes", "yes"]);
+		if (!$webmail["success"] && !str_contains(strtolower($webmail["message"]), "already")) {
+			return [
+				"installed" => false,
+				"message" => "Webmail could not be enabled before SSL: " . $webmail["message"],
+				"mail_host" => $mailHost,
+				"webmail_host" => $webmailHost,
+				"dns_ready" => false,
+			];
+		}
+		$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+		$mailData = $mailDomain["data"][$domain] ?? [];
+		$hasSsl = ($mailData["SSL"] ?? "no") === "yes";
+	}
+
+	if (!$mailPoints || !$webmailPoints) {
+		return [
+			"installed" => $hasSsl,
+			"message" => "Mail SSL deferred until mail and webmail hostnames resolve to {$nodeIp}.",
+			"mail_host" => $mailHost,
+			"webmail_host" => $webmailHost,
+			"mail_points_to_node" => $mailPoints,
+			"webmail_points_to_node" => $webmailPoints,
+			"dns_ready" => false,
+		];
+	}
+
+	if ($hasSsl) {
+		$redirect = whmpanel_force_mail_https($user, $domain);
+		return [
+			"installed" => true,
+			"message" => "Mail/webmail SSL already installed.",
+			"mail_host" => $mailHost,
+			"webmail_host" => $webmailHost,
+			"redirect" => $redirect,
+			"dns_ready" => true,
+		];
+	}
+
+	$ssl = whmpanel_run_soft(["v-add-letsencrypt-domain", $user, $domain, "", "yes"]);
+	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+	$mailData = $mailDomain["data"][$domain] ?? [];
+	$installed = $ssl["success"] || (($mailData["SSL"] ?? "no") === "yes");
+
+	return [
+		"installed" => $installed,
+		"message" => $installed ? "Mail/webmail Let's Encrypt SSL installed." : $ssl["message"],
+		"mail_host" => $mailHost,
+		"webmail_host" => $webmailHost,
+		"mail_points_to_node" => $mailPoints,
+		"webmail_points_to_node" => $webmailPoints,
+		"redirect" => $installed ? whmpanel_force_mail_https($user, $domain) : ["enabled" => false, "message" => "HTTPS redirect waits for SSL"],
+		"dns_ready" => true,
+	];
+}
+
+function whmpanel_force_mail_https(string $user, string $domain): array {
+	$domain = whmpanel_domain($domain);
+	$result = whmpanel_run_soft(["v-add-mail-domain-ssl-force", $user, $domain, "yes", "yes"]);
+
+	if ($result["success"] || str_contains(strtolower($result["message"]), "already")) {
+		return ["enabled" => true, "message" => "HTTP to HTTPS redirect enabled for mail/webmail."];
+	}
+
+	return ["enabled" => false, "message" => $result["message"]];
 }
 
 function whmpanel_mail_domain_webmail_repair(string $user, string $domain, array $input = []): array {
@@ -412,19 +538,7 @@ function whmpanel_mail_domain_webmail_repair(string $user, string $domain, array
 		];
 	}
 
-	$ssl = ["attempted" => false, "enabled" => false, "message" => "No reusable web SSL certificate was found"];
-	$sslDir = "/home/" . $user . "/conf/web/" . $domain . "/ssl";
-	if (is_file($sslDir . "/" . $domain . ".crt") && is_file($sslDir . "/" . $domain . ".key")) {
-		$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
-		$current = $mailDomain["data"][$domain] ?? [];
-		$sslCommand = (($current["SSL"] ?? "no") === "yes") ? "v-update-mail-domain-ssl" : "v-add-mail-domain-ssl";
-		$result = whmpanel_run_soft([$sslCommand, $user, $domain, $sslDir, "yes"]);
-		$ssl = [
-			"attempted" => true,
-			"enabled" => $result["success"] || str_contains(strtolower($result["message"]), "already"),
-			"message" => $result["message"],
-		];
-	}
+	$ssl = whmpanel_sync_mail_ssl($user, $domain, whmpanel_node_ip());
 
 	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
 
@@ -433,6 +547,7 @@ function whmpanel_mail_domain_webmail_repair(string $user, string $domain, array
 		"domain" => $domain,
 		"client" => $client,
 		"webmail_url" => whmpanel_webmail_url($domain),
+		"mail_url" => "https://mail." . $domain . "/",
 		"ssl" => $ssl,
 		"mail_domain" => $mailDomain["data"][$domain] ?? [],
 	];
@@ -1085,12 +1200,14 @@ function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceH
 	$webDomain = whmpanel_run_soft(["v-list-web-domain", $user, $domain], true);
 	$domainData = $webDomain["data"][$domain] ?? [];
 	$hasSsl = ($domainData["SSL"] ?? "no") === "yes" || ($domainData["LETSENCRYPT"] ?? "no") === "yes";
+	$mailSsl = whmpanel_sync_mail_ssl($user, $domain, $ip);
 
 	if ($hasSsl) {
 		$redirect = $forceHttps ? whmpanel_force_https($user, $domain) : ["enabled" => false, "message" => "HTTPS redirect not requested"];
 		return [
 			"installed" => true,
 			"redirect" => $redirect,
+			"mail_ssl" => $mailSsl,
 			"message" => "SSL already installed",
 		];
 	}
@@ -1099,6 +1216,7 @@ function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceH
 		return [
 			"installed" => false,
 			"redirect" => ["enabled" => false, "message" => "HTTPS redirect waits for SSL"],
+			"mail_ssl" => $mailSsl,
 			"message" => "SSL deferred until public DNS for {$domain} points to {$ip}",
 		];
 	}
@@ -1117,6 +1235,7 @@ function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceH
 	return [
 		"installed" => $ssl["success"] || $hasSsl,
 		"redirect" => $redirect,
+		"mail_ssl" => $mailSsl["installed"] ? $mailSsl : whmpanel_sync_mail_ssl($user, $domain, $ip),
 		"message" => $ssl["success"] ? "Let's Encrypt SSL installed" : $ssl["message"],
 	];
 }
