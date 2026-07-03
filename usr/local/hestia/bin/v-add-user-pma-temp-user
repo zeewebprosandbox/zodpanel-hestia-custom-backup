@@ -15,10 +15,16 @@ fi
 HESTIA=${HESTIA:-/usr/local/hestia}
 BIN="$HESTIA/bin"
 conf="$HESTIA/data/users/$user/db.conf"
+mysql_client="$(command -v mariadb || command -v mysql)"
 
 if [[ ! -f "$conf" ]]; then
   echo "Error: database config not found" >&2
   exit 2
+fi
+
+if [[ -z "$mysql_client" ]]; then
+  echo "Error: mysql client not found" >&2
+  exit 4
 fi
 
 if [[ -f /usr/local/hestia/func/main.sh ]]; then
@@ -40,7 +46,7 @@ dbpass="$(gen_pass)"
 created=0
 
 mysql_exec() {
-  mysql --defaults-extra-file=/root/.my.cnf -NBe "$1"
+  "$mysql_client" --defaults-extra-file=/root/.my.cnf -NBe "$1"
 }
 
 mysql_exec "CREATE USER \`$dbuser\`@'localhost' IDENTIFIED BY '$dbpass'"
