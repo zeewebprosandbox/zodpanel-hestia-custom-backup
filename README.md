@@ -36,3 +36,11 @@ After restoring the SSL automation files, run:
 ```bash
 /usr/local/hestia/bin/v-configure-zodpanel-ssl-automation 30
 ```
+
+That installer also enables `zodpanel-mail-deliverability-sync`, which repairs MX, SPF, DKIM, DMARC, mail/webmail host records, and mail TLS for domains as Hestia data changes. To run it manually for one domain:
+
+```bash
+/usr/local/hestia/bin/zodpanel-mail-deliverability-sync --user USERNAME --domain example.com
+```
+
+Inbox placement still depends on provider-controlled PTR/rDNS, IP reputation, complaint rate, bounce rate, and message content. The automation handles the DNS/authentication/TLS side that ZodPanel can control.

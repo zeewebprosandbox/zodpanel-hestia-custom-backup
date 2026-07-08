@@ -5,7 +5,7 @@
 # example: v-configure-zodpanel-ssl-automation 30
 #
 # This function installs systemd units that keep web, alias, subdomain,
-# mail, and webmail SSL synced shortly after Hestia data changes.
+# mail deliverability, and webmail SSL synced shortly after Hestia data changes.
 
 interval=${1:-30}
 
@@ -34,6 +34,20 @@ IOSchedulingClass=best-effort
 IOSchedulingPriority=7
 EOL
 
+cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.service <<EOL
+[Unit]
+Description=ZodPanel mail deliverability DNS, DKIM, SPF, DMARC, and TLS sync
+After=network-online.target hestia.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/hestia/bin/zodpanel-mail-deliverability-sync
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+EOL
+
 cat > /etc/systemd/system/zodpanel-ssl-sync-burst.service <<EOL
 [Unit]
 Description=ZodPanel burst SSL sync after Hestia data changes
@@ -43,6 +57,20 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/usr/local/hestia/bin/zodpanel-ssl-sync --runs 6 --interval 10
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+EOL
+
+cat > /etc/systemd/system/zodpanel-mail-deliverability-sync-burst.service <<EOL
+[Unit]
+Description=ZodPanel burst mail deliverability sync after Hestia data changes
+After=network-online.target hestia.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/hestia/bin/zodpanel-mail-deliverability-sync --runs 6 --interval 10
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7
@@ -71,6 +99,20 @@ Unit=zodpanel-ssl-sync-burst.service
 WantedBy=multi-user.target
 EOL
 
+cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.path <<EOL
+[Unit]
+Description=Watch Hestia domain data for ZodPanel mail deliverability sync
+
+[Path]
+PathChanged=/usr/local/hestia/data/users
+PathModified=/usr/local/hestia/data/users
+$path_entries
+Unit=zodpanel-mail-deliverability-sync-burst.service
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
 cat > /etc/systemd/system/zodpanel-ssl-sync.timer <<EOL
 [Unit]
 Description=Run ZodPanel SSL sync frequently
@@ -85,9 +127,24 @@ Unit=zodpanel-ssl-sync.service
 WantedBy=timers.target
 EOL
 
+cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.timer <<EOL
+[Unit]
+Description=Run ZodPanel mail deliverability sync frequently
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=${interval}s
+AccuracySec=5s
+Unit=zodpanel-mail-deliverability-sync.service
+
+[Install]
+WantedBy=timers.target
+EOL
+
 systemctl daemon-reload
-systemctl enable --now zodpanel-ssl-sync.timer zodpanel-ssl-sync.path
+systemctl enable --now zodpanel-ssl-sync.timer zodpanel-ssl-sync.path zodpanel-mail-deliverability-sync.timer zodpanel-mail-deliverability-sync.path
 systemctl start zodpanel-ssl-sync.service
+systemctl start --no-block zodpanel-mail-deliverability-sync.service
 
 check_result $? "ZodPanel SSL automation setup failed" > /dev/null
 

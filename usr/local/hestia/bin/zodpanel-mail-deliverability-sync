@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ENV_FILE="${ENV_FILE:-/etc/whmpanel/node.env}"
-LOCK_FILE="${LOCK_FILE:-/tmp/zodpanel-ssl-sync.lock}"
+LOCK_FILE="${LOCK_FILE:-/tmp/zodpanel-mail-deliverability-sync.lock}"
 INTERVAL="${INTERVAL:-20}"
 RUNS="${RUNS:-1}"
 REPAIR_DNS="${REPAIR_DNS:-true}"
@@ -77,7 +77,7 @@ sync_once() {
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -X POST \
-    "${BASE_URL%/}/api/whmlab/index.php?endpoint=ssl/sync" \
+    "${BASE_URL%/}/api/whmlab/index.php?endpoint=mail/deliverability/sync" \
     --data "$payload" >/dev/null
 }
 
