@@ -1382,6 +1382,26 @@ function whmpanel_find_dns_record(array $records, array $wanted): ?array {
 	return null;
 }
 
+function whmpanel_conflicting_dns_records(array $records, array $wanted, ?string $keepId = null): array {
+	$conflicts = [];
+	$wantedName = strtolower((string) $wanted["name"]);
+	$wantedType = strtoupper((string) $wanted["type"]);
+
+	foreach ($records as $id => $record) {
+		$recordId = (string) ($record["ID"] ?? $id);
+		$name = strtolower((string) ($record["RECORD"] ?? ""));
+		$type = strtoupper((string) ($record["TYPE"] ?? ""));
+		if ($name !== $wantedName || ($keepId !== null && $recordId === $keepId)) {
+			continue;
+		}
+		if ($type === $wantedType || $type === "CNAME" || $wantedType === "CNAME") {
+			$conflicts[] = $recordId;
+		}
+	}
+
+	return array_values(array_unique($conflicts));
+}
+
 function whmpanel_mail_dkim_dns_record(string $user, string $domain): ?array {
 	$domain = whmpanel_domain($domain);
 	$mail = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
@@ -1433,15 +1453,23 @@ function whmpanel_repair_dns_records(string $user, string $domain, array $input 
 		$existing = whmpanel_find_dns_record($current, $record);
 		if ($existing) {
 			$id = (string) $existing["ID"];
+			foreach (whmpanel_conflicting_dns_records($current, $record, $id) as $conflictId) {
+				whmpanel_run_soft(["v-delete-dns-record", $user, $domain, $conflictId, "no"]);
+			}
 			$result = whmpanel_run_soft(["v-change-dns-record", $user, $domain, $id, $record["name"], $record["type"], $record["value"], (string) $record["priority"], "no", "3600"]);
 			if (!$result["success"] && !str_contains(strtolower($result["message"]), "no pending changes")) {
 				whmpanel_error($result["message"], 422);
 			}
 			$changes[] = ["action" => $result["success"] ? "updated" : "unchanged", "id" => $id] + $record;
 		} else {
+			foreach (whmpanel_conflicting_dns_records($current, $record) as $conflictId) {
+				whmpanel_run_soft(["v-delete-dns-record", $user, $domain, $conflictId, "no"]);
+			}
 			whmpanel_run(["v-add-dns-record", $user, $domain, $record["name"], $record["type"], $record["value"], (string) $record["priority"], "", "no", "3600"]);
 			$changes[] = ["action" => "created"] + $record;
 		}
+		$records = whmpanel_run_soft(["v-list-dns-records", $user, $domain], true);
+		$current = $records["data"] ?? $current;
 	}
 
 	whmpanel_run_soft(["v-rebuild-dns-domain", $user, $domain, "yes"]);
