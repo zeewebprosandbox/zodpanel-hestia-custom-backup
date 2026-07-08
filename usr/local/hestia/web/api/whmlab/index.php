@@ -1186,7 +1186,8 @@ function whmpanel_dns_required_records(string $domain, string $ip): array {
 		["name" => "webmail", "type" => "A", "value" => $ip, "priority" => ""],
 		["name" => "@", "type" => "MX", "value" => "mail." . $domain . ".", "priority" => "0"],
 		["name" => "@", "type" => "TXT", "value" => "v=spf1 a mx ip4:" . $ip . " -all", "priority" => "", "match" => "v=spf1"],
-		["name" => "_dmarc", "type" => "TXT", "value" => "v=DMARC1; p=quarantine; adkim=s; aspf=s; pct=100; rua=mailto:postmaster@" . $domain, "priority" => "", "match" => "v=DMARC1"],
+		["name" => "_dmarc", "type" => "TXT", "value" => "v=DMARC1; p=quarantine; adkim=s; aspf=s; pct=100; rua=mailto:postmaster@" . $domain . "; ruf=mailto:postmaster@" . $domain . "; fo=1", "priority" => "", "match" => "v=DMARC1"],
+		["name" => "_smtp._tls", "type" => "TXT", "value" => "v=TLSRPTv1; rua=mailto:postmaster@" . $domain, "priority" => "", "match" => "v=TLSRPTv1"],
 		["name" => "@", "type" => "CAA", "value" => '0 issue "letsencrypt.org"', "priority" => ""],
 	];
 }
@@ -1234,7 +1235,61 @@ function whmpanel_dnsbl_listed(string $ip, string $zone): ?bool {
 		return null;
 	}
 
-	return (bool) dns_get_record($reverse . "." . $zone, DNS_A);
+	$query = $reverse . "." . $zone;
+	$result = trim((string) shell_exec("timeout 3 dig +short +time=2 +tries=1 " . escapeshellarg($query) . " A 2>/dev/null"));
+	if ($result === "") {
+		return false;
+	}
+
+	return (bool) preg_match('/\b\d{1,3}(?:\.\d{1,3}){3}\b/', $result);
+}
+
+function whmpanel_exim_queue_stats(): array {
+	$exim = is_executable("/usr/sbin/exim") ? "/usr/sbin/exim" : "exim";
+	$count = trim((string) shell_exec($exim . " -bpc 2>/dev/null"));
+	$count = ctype_digit($count) ? (int) $count : null;
+	$frozen = trim((string) shell_exec($exim . " -bp 2>/dev/null | grep -c 'frozen'"));
+
+	return [
+		"count" => $count,
+		"frozen" => ctype_digit($frozen) ? (int) $frozen : null,
+	];
+}
+
+function whmpanel_mail_domain_compliance(string $user, string $domain, int $rateLimit = 200): array {
+	$domain = whmpanel_domain($domain);
+	$accounts = whmpanel_run_soft(["v-list-mail-accounts", $user, $domain], true);
+	$accountNames = array_keys($accounts["data"] ?? []);
+	$primaryAccount = $accountNames[0] ?? null;
+	$aliases = [];
+
+	if ($primaryAccount) {
+		foreach (["postmaster", "abuse"] as $alias) {
+			$result = whmpanel_run_soft(["v-add-mail-account-alias", $user, $domain, $primaryAccount, $alias]);
+			$aliases[$alias] = [
+				"target" => $primaryAccount . "@" . $domain,
+				"success" => $result["success"] || str_contains(strtolower($result["message"]), "exists"),
+				"message" => $result["message"],
+			];
+		}
+	}
+
+	$rate = null;
+	if ($rateLimit > 0) {
+		$result = whmpanel_run_soft(["v-change-mail-domain-rate-limit", $user, $domain, (string) $rateLimit]);
+		$rate = [
+			"limit" => $rateLimit,
+			"success" => $result["success"],
+			"message" => $result["message"],
+		];
+	}
+
+	return [
+		"primary_account" => $primaryAccount,
+		"required_aliases" => $aliases,
+		"rate_limit" => $rate,
+		"queue" => whmpanel_exim_queue_stats(),
+	];
 }
 
 function whmpanel_mail_deliverability_diagnostics(string $user, string $domain, string $ip): array {
@@ -1247,16 +1302,20 @@ function whmpanel_mail_deliverability_diagnostics(string $user, string $domain, 
 	$spf = whmpanel_public_txt_values($domain);
 	$dkim = whmpanel_public_txt_values("mail._domainkey." . $domain);
 	$dmarc = whmpanel_public_txt_values("_dmarc." . $domain);
+	$tlsRpt = whmpanel_public_txt_values("_smtp._tls." . $domain);
 	$mx = whmpanel_public_mx_values($domain);
 	$mailA = whmpanel_dns_a_values($mailHost);
+	$queue = whmpanel_exim_queue_stats();
 	$checks = [
 		"mail_a_points_to_node" => in_array($ip, $mailA, true),
 		"mx_points_to_mail_host" => (bool) array_filter($mx, fn($record) => strtolower($record["host"]) === strtolower($mailHost)),
 		"spf_authorizes_node" => (bool) array_filter($spf, fn($value) => str_starts_with(strtolower($value), "v=spf1") && str_contains($value, "ip4:" . $ip)),
 		"dkim_public_key_present" => (bool) array_filter($dkim, fn($value) => str_starts_with(strtolower($value), "v=dkim1")),
 		"dmarc_present" => (bool) array_filter($dmarc, fn($value) => str_starts_with(strtolower($value), "v=dmarc1")),
+		"tls_reporting_present" => (bool) array_filter($tlsRpt, fn($value) => str_starts_with(strtolower($value), "v=tlsrptv1")),
 		"ptr_present" => $ptr !== "",
 		"ptr_matches_hostname" => $ptr !== "" && in_array(strtolower($ptr), array_filter([strtolower($fqdn), strtolower($hostname), strtolower($mailHost)]), true),
+		"mail_queue_healthy" => ($queue["count"] ?? 0) < 50 && ($queue["frozen"] ?? 0) < 10,
 	];
 	$dnsbl = [
 		"zen.spamhaus.org" => whmpanel_dnsbl_listed($ip, "zen.spamhaus.org"),
@@ -1288,7 +1347,9 @@ function whmpanel_mail_deliverability_diagnostics(string $user, string $domain, 
 			"spf" => $spf,
 			"dkim" => $dkim,
 			"dmarc" => $dmarc,
+			"tls_reporting" => $tlsRpt,
 		],
+		"queue" => $queue,
 		"dnsbl" => $dnsbl,
 		"checks" => $checks,
 		"warnings" => $warnings,
@@ -1415,6 +1476,7 @@ function whmpanel_repair_mail_delivery(string $user, string $domain, array $inpu
 	$dns = !empty($input["skip_dns_repair"]) ? null : whmpanel_repair_dns_records($user, $domain, $input);
 	$rebuild = whmpanel_run_soft(["v-rebuild-mail-domain", $user, $domain, "yes"]);
 	$ssl = whmpanel_sync_mail_ssl($user, $domain, $nodeIp);
+	$compliance = whmpanel_mail_domain_compliance($user, $domain, (int) ($input["rate_limit"] ?? 200));
 	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
 	$diagnostics = whmpanel_mail_deliverability_diagnostics($user, $domain, $nodeIp);
 
@@ -1425,6 +1487,7 @@ function whmpanel_repair_mail_delivery(string $user, string $domain, array $inpu
 		"dkim_dns" => $dkim,
 		"dns" => $dns,
 		"ssl" => $ssl,
+		"compliance" => $compliance,
 		"rebuild" => ["success" => $rebuild["success"], "message" => $rebuild["message"]],
 		"mail_domain" => $mailDomain["data"][$domain] ?? [],
 		"diagnostics" => $diagnostics,

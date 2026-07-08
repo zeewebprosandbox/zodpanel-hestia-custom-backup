@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MODE="${1:-frozen-bounces}"
+
+case "$MODE" in
+  frozen-bounces)
+    exim -bp 2>/dev/null | awk '/frozen/ && $4 == "<>" {print $3}' | while read -r message_id; do
+      [ -n "$message_id" ] && exim -Mrm "$message_id" >/dev/null 2>&1 || true
+    done
+    ;;
+  count)
+    exim -bpc 2>/dev/null || true
+    ;;
+  *)
+    echo "Usage: $0 [frozen-bounces|count]" >&2
+    exit 64
+    ;;
+esac
