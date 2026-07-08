@@ -7,6 +7,7 @@ INTERVAL="${INTERVAL:-20}"
 RUNS="${RUNS:-1}"
 REPAIR_DNS="${REPAIR_DNS:-true}"
 CREATE_MAIL_DOMAIN="${CREATE_MAIL_DOMAIN:-true}"
+REQUEST_TIMEOUT="${REQUEST_TIMEOUT:-90}"
 USER_NAME=""
 DOMAIN_NAME=""
 
@@ -63,17 +64,19 @@ if [ -z "$TOKEN" ]; then
 fi
 
 sync_once() {
+  local user="${1:-$USER_NAME}"
+  local domain="${2:-$DOMAIN_NAME}"
   local payload
   payload=$(printf '{"repair_dns":%s,"create_mail_domain":%s' "$REPAIR_DNS" "$CREATE_MAIL_DOMAIN")
-  if [ -n "$USER_NAME" ]; then
-    payload="${payload},\"username\":\"${USER_NAME//\"/\\\"}\""
+  if [ -n "$user" ]; then
+    payload="${payload},\"username\":\"${user//\"/\\\"}\""
   fi
-  if [ -n "$DOMAIN_NAME" ]; then
-    payload="${payload},\"domain\":\"${DOMAIN_NAME//\"/\\\"}\""
+  if [ -n "$domain" ]; then
+    payload="${payload},\"domain\":\"${domain//\"/\\\"}\""
   fi
   payload="${payload}}"
 
-  flock -n "$LOCK_FILE" curl -k -fsS --connect-timeout 5 --max-time 600 --retry 1 --retry-delay 2 \
+  curl -k -fsS --connect-timeout 5 --max-time "$REQUEST_TIMEOUT" --retry 0 \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -X POST \
@@ -81,16 +84,49 @@ sync_once() {
     --data "$payload" >/dev/null
 }
 
+list_domains_for_user() {
+  local user="$1"
+  {
+    /usr/local/hestia/bin/v-list-web-domains "$user" json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $domain) { echo $domain, PHP_EOL; }'
+    /usr/local/hestia/bin/v-list-mail-domains "$user" json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $domain) { echo $domain, PHP_EOL; }'
+  } | sed '/^$/d' | awk '/^[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/ {print tolower($0)}' | sort -u
+}
+
+list_users() {
+  /usr/local/hestia/bin/v-list-users json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $user) { echo $user, PHP_EOL; }'
+}
+
+sync_all_once() {
+  if [ -n "$USER_NAME" ] || [ -n "$DOMAIN_NAME" ]; then
+    flock -n "$LOCK_FILE" bash -c 'sync_once "$@"' _ "$USER_NAME" "$DOMAIN_NAME"
+    return
+  fi
+
+  flock -n "$LOCK_FILE" bash -c '
+    set -euo pipefail
+    while read -r user; do
+      [ -n "$user" ] || continue
+      while read -r domain; do
+        [ -n "$domain" ] || continue
+        sync_once "$user" "$domain" || true
+      done < <(list_domains_for_user "$user")
+    done < <(list_users)
+  '
+}
+
+export -f sync_once list_domains_for_user list_users
+export TOKEN BASE_URL REPAIR_DNS CREATE_MAIL_DOMAIN REQUEST_TIMEOUT LOCK_FILE USER_NAME DOMAIN_NAME
+
 if [ "$RUNS" -eq 0 ]; then
   while true; do
-    sync_once || true
+    sync_all_once || true
     sleep "$INTERVAL"
   done
 fi
 
 count=0
 while [ "$count" -lt "$RUNS" ]; do
-  sync_once || true
+  sync_all_once || true
   count=$((count + 1))
   if [ "$count" -lt "$RUNS" ]; then
     sleep "$INTERVAL"

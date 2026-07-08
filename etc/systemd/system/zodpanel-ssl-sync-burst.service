@@ -1,0 +1,12 @@
+[Unit]
+Description=ZodPanel burst SSL sync after Hestia data changes
+After=network-online.target hestia.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/hestia/bin/zodpanel-ssl-sync --runs 1
+TimeoutStartSec=12min
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

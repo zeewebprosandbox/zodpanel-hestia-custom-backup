@@ -1,0 +1,22 @@
+[Unit]
+Description=Watch Hestia domain data for ZodPanel SSL sync
+
+[Path]
+PathChanged=/usr/local/hestia/data/users
+PathModified=/usr/local/hestia/data/users
+PathChanged=/usr/local/hestia/data/users/dingservercloud/web.conf
+PathModified=/usr/local/hestia/data/users/dingservercloud/web.conf
+PathChanged=/usr/local/hestia/data/users/whmadmin/web.conf
+PathModified=/usr/local/hestia/data/users/whmadmin/web.conf
+PathChanged=/usr/local/hestia/data/users/dingservercloud/mail.conf
+PathModified=/usr/local/hestia/data/users/dingservercloud/mail.conf
+PathChanged=/usr/local/hestia/data/users/whmadmin/mail.conf
+PathModified=/usr/local/hestia/data/users/whmadmin/mail.conf
+PathChanged=/usr/local/hestia/data/users/dingservercloud/dns.conf
+PathModified=/usr/local/hestia/data/users/dingservercloud/dns.conf
+PathChanged=/usr/local/hestia/data/users/whmadmin/dns.conf
+PathModified=/usr/local/hestia/data/users/whmadmin/dns.conf
+Unit=zodpanel-ssl-sync-burst.service
+
+[Install]
+WantedBy=multi-user.target

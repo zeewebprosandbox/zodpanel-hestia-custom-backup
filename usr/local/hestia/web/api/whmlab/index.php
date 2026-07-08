@@ -325,21 +325,12 @@ function whmpanel_dns_a_values(string $domain): array {
 	}
 
 	$values = [];
-	foreach (dns_get_record($domain, DNS_A) ?: [] as $record) {
-		if (!empty($record["ip"])) {
-			$values[] = (string) $record["ip"];
-		}
-	}
-
-	$fallback = gethostbyname($domain);
-	if ($fallback !== $domain) {
-		$values[] = $fallback;
-	}
-
-	$nodeRecords = trim((string) shell_exec("dig @127.0.0.1 +short A " . escapeshellarg($domain) . " 2>/dev/null"));
-	foreach (preg_split('/\s+/', $nodeRecords) ?: [] as $record) {
-		if (filter_var($record, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-			$values[] = $record;
+	foreach (["", "@127.0.0.1"] as $resolver) {
+		$nodeRecords = trim((string) shell_exec("timeout 2 dig {$resolver} +short +time=1 +tries=1 A " . escapeshellarg($domain) . " 2>/dev/null"));
+		foreach (preg_split('/\s+/', $nodeRecords) ?: [] as $record) {
+			if (filter_var($record, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+				$values[] = $record;
+			}
 		}
 	}
 
@@ -1193,10 +1184,10 @@ function whmpanel_dns_required_records(string $domain, string $ip): array {
 }
 
 function whmpanel_public_txt_values(string $host): array {
-	$records = dns_get_record($host, DNS_TXT) ?: [];
 	$values = [];
-	foreach ($records as $record) {
-		$value = (string) ($record["txt"] ?? $record["TXT"] ?? "");
+	$output = trim((string) shell_exec("timeout 2 dig +short +time=1 +tries=1 TXT " . escapeshellarg($host) . " 2>/dev/null"));
+	foreach (preg_split('/\n+/', $output) ?: [] as $line) {
+		$value = trim(str_replace('" "', "", trim($line)), "\" \t\r\n");
 		if ($value !== "") {
 			$values[] = $value;
 		}
@@ -1206,14 +1197,15 @@ function whmpanel_public_txt_values(string $host): array {
 }
 
 function whmpanel_public_mx_values(string $domain): array {
-	$records = dns_get_record($domain, DNS_MX) ?: [];
 	$values = [];
-	foreach ($records as $record) {
-		$target = rtrim((string) ($record["target"] ?? ""), ".");
+	$output = trim((string) shell_exec("timeout 2 dig +short +time=1 +tries=1 MX " . escapeshellarg($domain) . " 2>/dev/null"));
+	foreach (preg_split('/\n+/', $output) ?: [] as $line) {
+		$parts = preg_split('/\s+/', trim($line));
+		$target = rtrim((string) ($parts[1] ?? ""), ".");
 		if ($target !== "") {
 			$values[] = [
 				"host" => $target,
-				"priority" => (int) ($record["pri"] ?? 0),
+				"priority" => (int) ($parts[0] ?? 0),
 			];
 		}
 	}
@@ -1236,7 +1228,7 @@ function whmpanel_dnsbl_listed(string $ip, string $zone): ?bool {
 	}
 
 	$query = $reverse . "." . $zone;
-	$result = trim((string) shell_exec("timeout 3 dig +short +time=2 +tries=1 " . escapeshellarg($query) . " A 2>/dev/null"));
+	$result = trim((string) shell_exec("timeout 2 dig +short +time=1 +tries=1 " . escapeshellarg($query) . " A 2>/dev/null"));
 	if ($result === "") {
 		return false;
 	}
@@ -1245,15 +1237,24 @@ function whmpanel_dnsbl_listed(string $ip, string $zone): ?bool {
 }
 
 function whmpanel_exim_queue_stats(): array {
-	$exim = is_executable("/usr/sbin/exim") ? "/usr/sbin/exim" : "exim";
-	$count = trim((string) shell_exec($exim . " -bpc 2>/dev/null"));
+	$queueTool = "/usr/bin/sudo -n /usr/local/hestia/bin/zodpanel-mail-queue-cleanup";
+	$count = trim((string) shell_exec($queueTool . " count 2>/dev/null"));
 	$count = ctype_digit($count) ? (int) $count : null;
-	$frozen = trim((string) shell_exec($exim . " -bp 2>/dev/null | grep -c 'frozen'"));
+	$frozen = trim((string) shell_exec($queueTool . " frozen-count 2>/dev/null"));
 
 	return [
 		"count" => $count,
 		"frozen" => ctype_digit($frozen) ? (int) $frozen : null,
 	];
+}
+
+function whmpanel_ptr_value(string $ip): string {
+	if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+		return "";
+	}
+
+	$output = trim((string) shell_exec("timeout 2 dig +short +time=1 +tries=1 -x " . escapeshellarg($ip) . " 2>/dev/null | head -1"));
+	return rtrim($output, ".");
 }
 
 function whmpanel_mail_domain_compliance(string $user, string $domain, int $rateLimit = 200): array {
@@ -1297,8 +1298,7 @@ function whmpanel_mail_deliverability_diagnostics(string $user, string $domain, 
 	$mailHost = "mail." . $domain;
 	$hostname = trim((string) gethostname());
 	$fqdn = trim((string) shell_exec("hostname -f 2>/dev/null")) ?: $hostname;
-	$ptr = gethostbyaddr($ip);
-	$ptr = $ptr !== $ip ? rtrim((string) $ptr, ".") : "";
+	$ptr = whmpanel_ptr_value($ip);
 	$spf = whmpanel_public_txt_values($domain);
 	$dkim = whmpanel_public_txt_values("mail._domainkey." . $domain);
 	$dmarc = whmpanel_public_txt_values("_dmarc." . $domain);
@@ -1317,10 +1317,13 @@ function whmpanel_mail_deliverability_diagnostics(string $user, string $domain, 
 		"ptr_matches_hostname" => $ptr !== "" && in_array(strtolower($ptr), array_filter([strtolower($fqdn), strtolower($hostname), strtolower($mailHost)]), true),
 		"mail_queue_healthy" => ($queue["count"] ?? 0) < 50 && ($queue["frozen"] ?? 0) < 10,
 	];
-	$dnsbl = [
-		"zen.spamhaus.org" => whmpanel_dnsbl_listed($ip, "zen.spamhaus.org"),
-		"bl.spamcop.net" => whmpanel_dnsbl_listed($ip, "bl.spamcop.net"),
-	];
+	$dnsbl = [];
+	if (whmpanel_bool(getenv("ZODPANEL_DNSBL_CHECK") ?: "false")) {
+		$dnsbl = [
+			"zen.spamhaus.org" => whmpanel_dnsbl_listed($ip, "zen.spamhaus.org"),
+			"bl.spamcop.net" => whmpanel_dnsbl_listed($ip, "bl.spamcop.net"),
+		];
+	}
 	$warnings = [];
 
 	foreach ($checks as $name => $ok) {

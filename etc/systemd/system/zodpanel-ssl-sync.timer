@@ -1,0 +1,11 @@
+[Unit]
+Description=Run ZodPanel SSL sync periodically
+
+[Timer]
+OnActiveSec=15min
+OnUnitActiveSec=15min
+AccuracySec=30s
+Unit=zodpanel-ssl-sync.service
+
+[Install]
+WantedBy=timers.target

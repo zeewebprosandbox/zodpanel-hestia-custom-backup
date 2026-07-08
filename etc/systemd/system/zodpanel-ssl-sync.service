@@ -1,0 +1,12 @@
+[Unit]
+Description=ZodPanel SSL, DNS, mail, and webmail sync
+After=network-online.target hestia.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/hestia/bin/zodpanel-ssl-sync
+TimeoutStartSec=12min
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

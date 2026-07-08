@@ -1,0 +1,11 @@
+[Unit]
+Description=Run ZodPanel mail deliverability sync periodically
+
+[Timer]
+OnActiveSec=15min
+OnUnitActiveSec=15min
+AccuracySec=30s
+Unit=zodpanel-mail-deliverability-sync.service
+
+[Install]
+WantedBy=timers.target
