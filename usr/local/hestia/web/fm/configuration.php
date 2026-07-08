@@ -1,9 +1,110 @@
 <?php
+use Filegator\Services\Storage\Filesystem as Storage;
 use function Hestiacp\quoteshellarg\quoteshellarg;
 if (session_status() === PHP_SESSION_ACTIVE) {
+	$requested_fm_domain = strtolower(trim((string) ($_GET["domain"] ?? "")));
+	if ($requested_fm_domain !== "" && preg_match('/^(?!-)[a-z0-9.-]+(?<!-)$/', $requested_fm_domain)) {
+		$_SESSION["FM_DOMAIN"] = $requested_fm_domain;
+	}
 	session_write_close();
 }
 $dist_config = require __DIR__ . "/configuration_sample.php";
+
+if (!class_exists("ZodPanelSameDirectoryZipArchiver", false)) {
+	class ZodPanelSameDirectoryZipArchiver extends \Filegator\Services\Archiver\Adapters\HestiaZipArchiver
+	{
+		public function uncompress(string $source, string $destination, Storage $storage)
+		{
+			$auth = $this->container->get("Filegator\Services\Auth\AuthInterface");
+			$v_user = basename($auth->user()->getUsername());
+			if ($v_user === "") {
+				return;
+			}
+
+			$base = "/home/" . $v_user;
+			$root = $this->getFileManagerRoot($v_user, $base);
+			$source_path = $this->resolveArchivePath($source, $root, $base);
+			$real_source = realpath($source_path);
+
+			if ($real_source === false || !str_starts_with($real_source, $base . "/")) {
+				return;
+			}
+
+			$real_dest = realpath(dirname($real_source));
+			if ($real_dest === false || !str_starts_with($real_dest, $base . "/")) {
+				throw new \RuntimeException("Invalid extraction destination");
+			}
+
+			exec(
+				"sudo /usr/local/hestia/bin/v-extract-fs-archive " .
+					quoteshellarg($v_user) .
+					" " .
+					quoteshellarg($real_source) .
+					" " .
+					quoteshellarg($real_dest),
+				$output,
+				$return_var,
+			);
+
+			if ($return_var !== 0) {
+				throw new \RuntimeException(implode("\n", $output) ?: "Archive extraction failed");
+			}
+		}
+
+		private function getFileManagerRoot(string $v_user, string $base): string
+		{
+			foreach ($this->getRequestedDomains() as $requested_domain) {
+				$domain_root = $base . "/web/" . $requested_domain . "/public_html";
+				$real_domain_root = realpath($domain_root);
+				if (
+					$real_domain_root !== false &&
+					is_dir($real_domain_root) &&
+					str_starts_with($real_domain_root, $base . "/web/")
+				) {
+					return $real_domain_root;
+				}
+			}
+
+			return $base;
+		}
+
+		private function resolveArchivePath(string $source, string $root, string $base): string
+		{
+			$source = trim($source);
+			if (str_starts_with($source, "/home/")) {
+				return $source;
+			}
+
+			$relative_source = ltrim($source, "/");
+			if (str_starts_with($relative_source, "web/")) {
+				return $base . "/" . $relative_source;
+			}
+
+			return rtrim($root, "/") . "/" . $relative_source;
+		}
+
+		private function getRequestedDomains(): array
+		{
+			$domains = [];
+			foreach ([($_GET["domain"] ?? ""), ($_SESSION["FM_DOMAIN"] ?? "")] as $domain) {
+				$domain = strtolower(trim((string) $domain));
+				if ($domain !== "" && preg_match('/^(?!-)[a-z0-9.-]+(?<!-)$/', $domain)) {
+					$domains[] = basename($domain);
+				}
+			}
+
+			return array_values(array_unique($domains));
+		}
+	}
+}
+
+if (!class_exists("\Filegator\Services\Archiver\Adapters\ZodPanelSameDirectoryZipArchiver", false)) {
+	class_alias(
+		"ZodPanelSameDirectoryZipArchiver",
+		"Filegator\Services\Archiver\Adapters\ZodPanelSameDirectoryZipArchiver",
+	);
+}
+
 $dist_config["public_path"] = "/fm/";
 $dist_config["frontend_config"]["app_name"] = "File Manager - Hestia Control Panel";
 $dist_config["frontend_config"]["logo"] = "../images/logo.svg";
@@ -233,7 +334,7 @@ $dist_config["services"]["Filegator\Services\Storage\Filesystem"]["config"][
 };
 
 $dist_config["services"]["Filegator\Services\Archiver\ArchiverInterface"] = [
-	"handler" => "\Filegator\Services\Archiver\Adapters\HestiaZipArchiver",
+	"handler" => "\Filegator\Services\Archiver\Adapters\ZodPanelSameDirectoryZipArchiver",
 	"config" => [],
 ];
 
