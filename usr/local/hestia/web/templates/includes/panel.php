@@ -177,7 +177,7 @@
 									<li class="top-bar-menu-item">
 										<a title="<?= _("File manager") ?>" class="top-bar-menu-link <?php if ($TAB == "FM") {
 	echo "active";
-} ?>" href="/fm/domains/">
+} ?>" href="/fm/domains/" target="_blank" rel="noopener">
 											<i class="fas fa-folder-open"></i>
 											<span class="top-bar-menu-link-label u-hide-desktop"><?= _("File manager") ?></span>
 										</a>

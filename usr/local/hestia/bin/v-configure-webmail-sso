@@ -1,0 +1,67 @@
+#!/bin/bash
+# info: Configure local Roundcube mailbox SSO
+# options: [MASTER_USER]
+#
+# example: v-configure-webmail-sso
+#
+# This function enables Dovecot master-user authentication for ZodPanel webmail SSO.
+
+master_user=${1:-zodpanel_webmail_sso}
+env_file="/etc/whmpanel/webmail-sso.env"
+auth_file="/etc/dovecot/conf.d/10-auth.conf"
+master_auth_file="/etc/dovecot/conf.d/auth-master.conf.ext"
+master_file="/etc/dovecot/master-users"
+
+source /etc/hestiacp/hestia.conf
+source "$HESTIA/func/main.sh"
+source_conf "$HESTIA/conf/hestia.conf"
+
+check_hestia_demo_mode
+
+mkdir -p /etc/whmpanel
+chmod 700 /etc/whmpanel
+
+if [ -f "$env_file" ]; then
+	# shellcheck source=/dev/null
+	source "$env_file"
+fi
+
+if [ -z "$WEBMAIL_SSO_MASTER_PASS" ]; then
+	WEBMAIL_SSO_MASTER_PASS=$(openssl rand -base64 30 | tr -d '\n')
+fi
+
+hash=$(doveadm pw -s SHA512-CRYPT -p "$WEBMAIL_SSO_MASTER_PASS")
+printf "%s:%s\n" "$master_user" "$hash" > "$master_file"
+chown root:dovecot "$master_file"
+chmod 640 "$master_file"
+
+cat > "$master_auth_file" <<EOL
+passdb {
+  driver = passwd-file
+  master = yes
+  args = $master_file
+}
+EOL
+chown root:root "$master_auth_file"
+chmod 644 "$master_auth_file"
+
+if ! grep -q "^auth_master_user_separator = \\*" "$auth_file"; then
+	sed -i "/^auth_mechanisms/a auth_master_user_separator = *" "$auth_file"
+fi
+
+if ! grep -q "^!include auth-master.conf.ext" "$auth_file"; then
+	sed -i "/^!include auth-passwdfile.conf.ext/i !include auth-master.conf.ext" "$auth_file"
+fi
+
+cat > "$env_file" <<EOL
+WEBMAIL_SSO_MASTER_USER='$master_user'
+WEBMAIL_SSO_MASTER_PASS='$WEBMAIL_SSO_MASTER_PASS'
+EOL
+chown root:www-data "$env_file"
+chmod 640 "$env_file"
+
+systemctl restart dovecot
+check_result $? "Dovecot restart failed" > /dev/null
+
+log_event "$OK" "$ARGUMENTS"
+exit

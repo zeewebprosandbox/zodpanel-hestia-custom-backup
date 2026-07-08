@@ -256,6 +256,8 @@
 							<a
 								class="units-table-row-action-link"
 								href="/fm/?<?= tohtml(http_build_query(["domain" => $key])) ?>"
+								target="_blank"
+								rel="noopener"
 								title="<?= tohtml( _("Open public_html")) ?>"
 							>
 								<i class="fas fa-folder-open icon-yellow"></i>

@@ -49,7 +49,7 @@ render_page($user, $TAB, function () use ($domains) {
 				$disk = $data["U_DISK"] ?? "0";
 				$bandwidth = $data["U_BANDWIDTH"] ?? "0";
 			?>
-				<a class="zod-fm-domain-card <?= $is_suspended ? "is-disabled" : "" ?>" href="/fm/?<?= tohtml(http_build_query(["domain" => $domain])) ?>">
+				<a class="zod-fm-domain-card <?= $is_suspended ? "is-disabled" : "" ?>" href="/fm/?<?= tohtml(http_build_query(["domain" => $domain])) ?>" target="_blank" rel="noopener">
 					<span class="zod-fm-domain-icon"><i class="fas fa-folder-open"></i></span>
 					<span class="zod-fm-domain-body">
 						<strong><?= tohtml($domain) ?></strong>

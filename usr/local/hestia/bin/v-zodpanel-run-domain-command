@@ -1,0 +1,102 @@
+#!/bin/bash
+# info: Run a command as a Hestia user inside a website directory
+# options: USER DOMAIN COMMAND_B64 [RELATIVE_PATH] [TIMEOUT]
+#
+# example: v-zodpanel-run-domain-command admin example.com cHdk
+#
+# This function executes a base64 encoded shell command as the account owner.
+
+user=$1
+domain=$2
+command_b64=$3
+relative_path="${4:-public_html}"
+run_timeout="${5:-30}"
+
+source /etc/hestiacp/hestia.conf
+source "$HESTIA/func/main.sh"
+source_conf "$HESTIA/conf/hestia.conf"
+
+check_args '3' "$#" 'USER DOMAIN COMMAND_B64 [RELATIVE_PATH] [TIMEOUT]'
+is_format_valid 'user' 'domain'
+is_object_valid 'user' 'USER' "$user"
+is_object_unsuspended 'user' 'USER' "$user"
+is_object_valid 'web' 'DOMAIN' "$domain"
+is_object_unsuspended 'web' 'DOMAIN' "$domain"
+
+check_hestia_demo_mode
+
+if ! [[ "$run_timeout" =~ ^[0-9]+$ ]]; then
+	echo "Error: timeout must be an integer"
+	exit "$E_INVALID"
+fi
+
+if [ "$run_timeout" -lt 1 ]; then
+	run_timeout=1
+fi
+
+if [ "$run_timeout" -gt 120 ]; then
+	run_timeout=120
+fi
+
+command=$(printf '%s' "$command_b64" | base64 -d 2>/dev/null)
+if [ -z "$command" ]; then
+	echo "Error: command is empty or invalid base64"
+	exit "$E_INVALID"
+fi
+
+if [ "${#command}" -gt 4000 ]; then
+	echo "Error: command is too long"
+	exit "$E_INVALID"
+fi
+
+domain_root="$HOMEDIR/$user/web/$domain"
+target_path="$domain_root/$relative_path"
+
+if [ "$relative_path" = "." ] || [ "$relative_path" = "/" ]; then
+	target_path="$domain_root"
+fi
+
+if [ ! -d "$target_path" ]; then
+	echo "Error: target directory does not exist"
+	exit "$E_NOTEXIST"
+fi
+
+real_domain_root=$(realpath "$domain_root")
+real_target_path=$(realpath "$target_path")
+
+case "$real_target_path" in
+	"$real_domain_root"|"$real_domain_root"/*) ;;
+	*)
+		echo "Error: target directory must be inside $domain_root"
+		exit "$E_INVALID"
+		;;
+esac
+
+tmp_script=$(mktemp "/tmp/zodpanel-${user}-${domain}.XXXXXX")
+{
+	printf 'cd %q\n' "$real_target_path"
+	printf 'export HOME=%q\n' "$HOMEDIR/$user"
+	printf 'export USER=%q\n' "$user"
+	printf 'export LOGNAME=%q\n' "$user"
+	printf '%s\n' "$command"
+} > "$tmp_script"
+chown "$user:$user" "$tmp_script"
+chmod 700 "$tmp_script"
+
+started_at=$(date +%s)
+output=$(timeout "$run_timeout" runuser -u "$user" -- /bin/bash "$tmp_script" 2>&1)
+code=$?
+finished_at=$(date +%s)
+rm -f "$tmp_script"
+
+printf 'EXIT_CODE=%s\n' "$code"
+printf 'CWD=%s\n' "$real_target_path"
+printf 'DURATION=%ss\n' "$((finished_at - started_at))"
+printf -- '---OUTPUT---\n'
+printf '%s\n' "$output"
+
+if [ "$code" -eq 124 ]; then
+	exit 124
+fi
+
+exit 0

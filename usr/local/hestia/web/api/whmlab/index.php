@@ -896,6 +896,7 @@ function whmpanel_create_mail_account(string $user, string $domain, array $input
 	}
 
 	whmpanel_run(["v-add-mail-account", $user, $domain, $account, $password, $quota]);
+	$delivery = whmpanel_repair_mail_delivery($user, $domain, ["create_mail_domain" => true] + $input);
 	$accounts = whmpanel_list_mail_accounts($user, $domain);
 
 	return [
@@ -904,6 +905,7 @@ function whmpanel_create_mail_account(string $user, string $domain, array $input
 		"domain" => $domain,
 		"quota" => $quota,
 		"password" => $password,
+		"delivery" => $delivery,
 		"accounts" => $accounts,
 	];
 }
@@ -1028,19 +1030,114 @@ function whmpanel_terminal_url(string $user, array $input = []): array {
 	$enabled = whmpanel_bool($config["WEB_TERMINAL"] ?? false);
 	$userData = whmpanel_run(["v-list-user", $user], true);
 	$shell = $userData[$user]["SHELL"] ?? "";
+	$domain = whmpanel_domain((string) ($input["domain"] ?? ""));
+	$path = whmpanel_terminal_path($user, $domain, (string) ($input["path"] ?? ""));
 
 	if (!$enabled || str_contains($shell, "nologin")) {
 		return [
 			"enabled" => false,
 			"message" => "Terminal is disabled by system or shell policy",
+			"path" => $path,
 		];
 	}
 
+	$redirect = "/list/terminal/";
+	if ($path !== "") {
+		$redirect .= "?" . http_build_query(["path" => $path]);
+	}
+	$sso = whmpanel_create_sso_token($user, $redirect);
+
 	return [
 		"enabled" => true,
-		"url" => whmpanel_public_url() . "/list/terminal/",
-		"path" => (string) ($input["path"] ?? "/home/" . $user),
+		"url" => $sso["url"],
+		"panel_url" => whmpanel_public_url() . $redirect,
+		"path" => $path,
 		"policy" => "non-root user shell only",
+	];
+}
+
+function whmpanel_terminal_path(string $user, string $domain = "", string $path = ""): string {
+	$home = "/home/" . $user;
+	if ($domain !== "") {
+		$base = $home . "/web/" . $domain;
+		$path = trim($path);
+		if ($path === "") {
+			return $base . "/public_html";
+		}
+		if (str_starts_with($path, "/")) {
+			return str_starts_with($path, $base) ? $path : $base . "/public_html";
+		}
+		return $base . "/" . ltrim($path, "/");
+	}
+
+	return $path !== "" ? $path : $home;
+}
+
+function whmpanel_relative_terminal_path(string $path): string {
+	$path = trim($path);
+	if ($path === "" || $path === "/") {
+		return "public_html";
+	}
+	$path = preg_replace("#^/+#", "", $path);
+	$parts = [];
+	foreach (explode("/", $path) as $part) {
+		if ($part === "" || $part === ".") {
+			continue;
+		}
+		if ($part === "..") {
+			array_pop($parts);
+			continue;
+		}
+		$parts[] = $part;
+	}
+
+	return implode("/", $parts) ?: "public_html";
+}
+
+function whmpanel_run_terminal_command(string $user, string $domain, array $input = []): array {
+	$domain = whmpanel_domain($domain);
+	$command = trim((string) ($input["command"] ?? ""));
+	$path = whmpanel_relative_terminal_path((string) ($input["path"] ?? "public_html"));
+	$timeout = max(1, min(120, (int) ($input["timeout"] ?? 30)));
+
+	if ($domain === "" || $command === "") {
+		whmpanel_error("domain and command are required", 422);
+	}
+
+	whmpanel_run(["v-list-user", $user], true);
+	whmpanel_run(["v-list-web-domain", $user, $domain], true);
+
+	$encoded = base64_encode($command);
+	$result = whmpanel_run_soft(["v-zodpanel-run-domain-command", $user, $domain, $encoded, $path, (string) $timeout]);
+	$body = $result["message"];
+	$output = $body;
+	$exitCode = $result["code"];
+	$cwd = whmpanel_terminal_path($user, $domain, $path);
+	$duration = null;
+
+	if (preg_match('/^EXIT_CODE=(\d+)$/m', $body, $matches)) {
+		$exitCode = (int) $matches[1];
+	}
+	if (preg_match('/^CWD=(.+)$/m', $body, $matches)) {
+		$cwd = trim($matches[1]);
+	}
+	if (preg_match('/^DURATION=(.+)$/m', $body, $matches)) {
+		$duration = trim($matches[1]);
+	}
+	if (str_contains($body, "---OUTPUT---\n")) {
+		$output = substr($body, strpos($body, "---OUTPUT---\n") + strlen("---OUTPUT---\n"));
+	}
+
+	return [
+		"success" => $result["success"] && $exitCode === 0,
+		"exit_code" => $exitCode,
+		"user" => $user,
+		"domain" => $domain,
+		"path" => $cwd,
+		"command" => $command,
+		"output" => $output,
+		"duration" => $duration,
+		"message" => $exitCode === 0 ? "Command completed" : "Command exited with code {$exitCode}",
 	];
 }
 
@@ -1078,10 +1175,14 @@ function whmpanel_dns_required_records(string $domain, string $ip): array {
 		["name" => "mail", "type" => "A", "value" => $ip, "priority" => ""],
 		["name" => "webmail", "type" => "A", "value" => $ip, "priority" => ""],
 		["name" => "@", "type" => "MX", "value" => "mail." . $domain . ".", "priority" => "0"],
-		["name" => "@", "type" => "TXT", "value" => "v=spf1 a mx ip4:" . $ip . " ~all", "priority" => ""],
-		["name" => "_dmarc", "type" => "TXT", "value" => "v=DMARC1; p=quarantine; rua=mailto:postmaster@" . $domain, "priority" => ""],
+		["name" => "@", "type" => "TXT", "value" => "v=spf1 a mx ip4:" . $ip . " ~all", "priority" => "", "match" => "v=spf1"],
+		["name" => "_dmarc", "type" => "TXT", "value" => "v=DMARC1; p=quarantine; rua=mailto:postmaster@" . $domain, "priority" => "", "match" => "v=DMARC1"],
 		["name" => "@", "type" => "CAA", "value" => '0 issue "letsencrypt.org"', "priority" => ""],
 	];
+}
+
+function whmpanel_dns_record_value(array $record): string {
+	return trim((string) ($record["VALUE"] ?? $record["RECORD_VALUE"] ?? $record["TXT"] ?? ""));
 }
 
 function whmpanel_find_dns_record(array $records, array $wanted): ?array {
@@ -1090,12 +1191,45 @@ function whmpanel_find_dns_record(array $records, array $wanted): ?array {
 			strtolower((string) ($record["RECORD"] ?? "")) === strtolower((string) $wanted["name"]) &&
 			strtoupper((string) ($record["TYPE"] ?? "")) === strtoupper((string) $wanted["type"])
 		) {
+			if (!empty($wanted["match"]) && !str_starts_with(strtolower(trim(whmpanel_dns_record_value($record), "\"'")), strtolower((string) $wanted["match"]))) {
+				continue;
+			}
 			$record["ID"] = $record["ID"] ?? (string) $id;
 			return $record;
 		}
 	}
 
 	return null;
+}
+
+function whmpanel_mail_dkim_dns_record(string $user, string $domain): ?array {
+	$domain = whmpanel_domain($domain);
+	$mail = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+	$mailData = $mail["data"][$domain] ?? [];
+
+	if (!$mail["success"]) {
+		return null;
+	}
+
+	if (($mailData["DKIM"] ?? "no") !== "yes" && whmpanel_command_exists("v-add-mail-domain-dkim")) {
+		whmpanel_run_soft(["v-add-mail-domain-dkim", $user, $domain, "2048"]);
+	}
+
+	if (!whmpanel_command_exists("v-list-mail-domain-dkim-dns")) {
+		return null;
+	}
+
+	$dkim = whmpanel_run_soft(["v-list-mail-domain-dkim-dns", $user, $domain, "plain"]);
+	if (!$dkim["success"] || !preg_match('/^(mail\._domainkey)\s+\d+\s+IN\s+TXT\s+"?([^"]+)"?/m', $dkim["message"], $matches)) {
+		return null;
+	}
+
+	$value = trim($matches[2]);
+	if ($value === "" || $value === "DKIM-SUPPORT-IS-NOT-ACTIVATED") {
+		return null;
+	}
+
+	return ["name" => $matches[1], "type" => "TXT", "value" => $value, "priority" => "", "match" => "v=DKIM1"];
 }
 
 function whmpanel_repair_dns_records(string $user, string $domain, array $input = []): array {
@@ -1109,6 +1243,10 @@ function whmpanel_repair_dns_records(string $user, string $domain, array $input 
 	$records = whmpanel_run_soft(["v-list-dns-records", $user, $domain], true);
 	$current = $records["data"] ?? [];
 	$required = whmpanel_dns_required_records($domain, $nodeIp);
+	$dkim = whmpanel_mail_dkim_dns_record($user, $domain);
+	if ($dkim) {
+		$required[] = $dkim;
+	}
 	$changes = [];
 
 	foreach ($required as $record) {
@@ -1134,6 +1272,43 @@ function whmpanel_repair_dns_records(string $user, string $domain, array $input 
 		"node_ip" => $nodeIp,
 		"changes" => $changes,
 		"records" => $records,
+	];
+}
+
+function whmpanel_repair_mail_delivery(string $user, string $domain, array $input = []): array {
+	$domain = whmpanel_domain($domain);
+	if ($user === "" || $domain === "") {
+		whmpanel_error("user and domain are required");
+	}
+
+	whmpanel_run(["v-list-user", $user], true);
+	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+	if (!$mailDomain["success"]) {
+		if (empty($input["create_mail_domain"])) {
+			return [
+				"repaired" => false,
+				"domain" => $domain,
+				"message" => "Mail domain does not exist yet. Call with create_mail_domain=true to create it.",
+			];
+		}
+		whmpanel_run(["v-add-mail-domain", $user, $domain]);
+	}
+
+	$dkim = whmpanel_mail_dkim_dns_record($user, $domain);
+	$dns = whmpanel_repair_dns_records($user, $domain, $input);
+	$rebuild = whmpanel_run_soft(["v-rebuild-mail-domain", $user, $domain, "yes"]);
+	$ssl = whmpanel_sync_mail_ssl($user, $domain, whmpanel_node_ip());
+	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
+
+	return [
+		"repaired" => true,
+		"domain" => $domain,
+		"dkim_dns" => $dkim,
+		"dns" => $dns,
+		"ssl" => $ssl,
+		"rebuild" => ["success" => $rebuild["success"], "message" => $rebuild["message"]],
+		"mail_domain" => $mailDomain["data"][$domain] ?? [],
+		"note" => "PTR/rDNS must still be set by the VPS/IP provider to match the mail hostname for best inbox delivery.",
 	];
 }
 
@@ -1182,17 +1357,33 @@ function whmpanel_force_https(string $user, string $domain): array {
 	return ["enabled" => false, "message" => $result["message"]];
 }
 
+function whmpanel_csv_domains(string $value): array {
+	return array_values(array_unique(array_filter(array_map(
+		fn($domain) => whmpanel_domain($domain),
+		explode(",", $value),
+	))));
+}
+
 function whmpanel_pointed_aliases(array $domainData, string $ip): string {
-	$aliases = array_filter(array_map("trim", explode(",", (string) ($domainData["ALIAS"] ?? ""))));
 	$pointed = [];
 
-	foreach ($aliases as $alias) {
+	foreach (whmpanel_csv_domains((string) ($domainData["ALIAS"] ?? "")) as $alias) {
 		if (whmpanel_dns_points_here($alias, $ip)) {
-			$pointed[] = whmpanel_domain($alias);
+			$pointed[] = $alias;
 		}
 	}
 
 	return implode(",", array_unique($pointed));
+}
+
+function whmpanel_missing_ssl_aliases(array $domainData, string $domain, string $ip): array {
+	$covered = array_merge(
+		[$domain],
+		whmpanel_csv_domains((string) ($domainData["SSL_DOMAINS"] ?? "")),
+	);
+	$pointed = whmpanel_csv_domains(whmpanel_pointed_aliases($domainData, $ip));
+
+	return array_values(array_diff($pointed, array_unique($covered)));
 }
 
 function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceHttps = true): array {
@@ -1201,8 +1392,9 @@ function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceH
 	$domainData = $webDomain["data"][$domain] ?? [];
 	$hasSsl = ($domainData["SSL"] ?? "no") === "yes" || ($domainData["LETSENCRYPT"] ?? "no") === "yes";
 	$mailSsl = whmpanel_sync_mail_ssl($user, $domain, $ip);
+	$missingAliases = whmpanel_missing_ssl_aliases($domainData, $domain, $ip);
 
-	if ($hasSsl) {
+	if ($hasSsl && count($missingAliases) === 0) {
 		$redirect = $forceHttps ? whmpanel_force_https($user, $domain) : ["enabled" => false, "message" => "HTTPS redirect not requested"];
 		return [
 			"installed" => true,
@@ -1236,11 +1428,12 @@ function whmpanel_try_ssl(string $user, string $domain, string $ip, bool $forceH
 		"installed" => $ssl["success"] || $hasSsl,
 		"redirect" => $redirect,
 		"mail_ssl" => $mailSsl["installed"] ? $mailSsl : whmpanel_sync_mail_ssl($user, $domain, $ip),
-		"message" => $ssl["success"] ? "Let's Encrypt SSL installed" : $ssl["message"],
+		"missing_aliases" => $missingAliases,
+		"message" => $ssl["success"] ? "Let's Encrypt SSL installed or expanded" : $ssl["message"],
 	];
 }
 
-function whmpanel_ssl_sync(?string $targetUser = null, ?string $targetDomain = null): array {
+function whmpanel_ssl_sync(?string $targetUser = null, ?string $targetDomain = null, bool $repairDns = true): array {
 	$nodeIp = whmpanel_node_ip();
 	$users = $targetUser ? [$targetUser] : array_keys(whmpanel_run(["v-list-users"], true));
 	$results = [];
@@ -1258,11 +1451,33 @@ function whmpanel_ssl_sync(?string $targetUser = null, ?string $targetDomain = n
 			if (!$domain) {
 				continue;
 			}
+			$dns = null;
+			if ($repairDns) {
+				$dns = whmpanel_repair_dns_records($user, $domain);
+			}
 			$results[] = [
 				"user" => $user,
 				"domain" => $domain,
+				"dns" => $dns,
+				"mail_delivery" => whmpanel_repair_mail_delivery($user, $domain),
 				"ssl" => whmpanel_try_ssl($user, $domain, $nodeIp, true),
 			];
+		}
+
+		if (!$targetDomain) {
+			$mailDomains = whmpanel_run_soft(["v-list-mail-domains", $user], true);
+			foreach (array_keys($mailDomains["data"] ?? []) as $domain) {
+				if (!$domain || isset($domains[$domain]) || in_array($domain, $domains, true)) {
+					continue;
+				}
+				$results[] = [
+					"user" => $user,
+					"domain" => $domain,
+					"dns" => $repairDns ? whmpanel_repair_dns_records($user, $domain) : null,
+					"mail_delivery" => whmpanel_repair_mail_delivery($user, $domain),
+					"ssl" => ["mail_ssl" => whmpanel_sync_mail_ssl($user, $domain, $nodeIp)],
+				];
+			}
 		}
 	}
 
@@ -1551,6 +1766,7 @@ if ($method === "POST" && $path === "ssl/sync") {
 	whmpanel_json(whmpanel_ssl_sync(
 		isset($input["username"]) ? (string) $input["username"] : null,
 		isset($input["domain"]) ? (string) $input["domain"] : null,
+		!array_key_exists("repair_dns", $input) || whmpanel_bool($input["repair_dns"]),
 	));
 }
 
@@ -1608,7 +1824,7 @@ if ($method === "POST" && $path === "users") {
 	if ($domain) {
 		whmpanel_run(["v-add-web-domain", $username, $domain]);
 		if (!empty($input["auto_dns"])) {
-			$dns = whmpanel_upsert_dns($username, $domain, $nodeIp, $input["ns1"] ?? null, $input["ns2"] ?? null);
+			$dns = whmpanel_repair_dns_records($username, $domain, $input);
 		}
 		if (!empty($input["auto_ssl"])) {
 			$ssl = whmpanel_try_ssl($username, $domain, $nodeIp);
@@ -1686,6 +1902,10 @@ if ($method === "GET" && preg_match("#^users/([^/]+)/terminal$#", $path, $matche
 	whmpanel_json(whmpanel_terminal_url($matches[1], $_GET));
 }
 
+if ($method === "POST" && preg_match("#^users/([^/]+)/terminal/run/([^/]+)$#", $path, $matches)) {
+	whmpanel_json(whmpanel_run_terminal_command($matches[1], $matches[2], $input));
+}
+
 if ($method === "GET" && preg_match("#^users/([^/]+)/file-manager$#", $path, $matches)) {
 	whmpanel_json(whmpanel_file_manager_url($matches[1], $_GET["domain"] ?? null));
 }
@@ -1736,8 +1956,12 @@ if ($method === "POST" && preg_match("#^users/([^/]+)/mail/([^/]+)/webmail/repai
 	whmpanel_json(whmpanel_mail_domain_webmail_repair($matches[1], $matches[2], $input));
 }
 
+if ($method === "POST" && preg_match("#^users/([^/]+)/mail/([^/]+)/delivery/repair$#", $path, $matches)) {
+	whmpanel_json(whmpanel_repair_mail_delivery($matches[1], $matches[2], $input));
+}
+
 if ($method === "POST" && preg_match("#^users/([^/]+)/domains/([^/]+)/ssl$#", $path, $matches)) {
-	whmpanel_json(whmpanel_ssl_sync($matches[1], $matches[2]));
+	whmpanel_json(whmpanel_ssl_sync($matches[1], $matches[2], !array_key_exists("repair_dns", $input) || whmpanel_bool($input["repair_dns"])));
 }
 
 if ($method === "PUT" && preg_match("#^users/([^/]+)$#", $path, $matches)) {

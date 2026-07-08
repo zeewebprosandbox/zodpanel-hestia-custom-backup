@@ -3,6 +3,44 @@ set -euo pipefail
 
 ENV_FILE="${ENV_FILE:-/etc/whmpanel/node.env}"
 LOCK_FILE="${LOCK_FILE:-/tmp/zodpanel-ssl-sync.lock}"
+INTERVAL="${INTERVAL:-20}"
+RUNS="${RUNS:-1}"
+REPAIR_DNS="${REPAIR_DNS:-true}"
+USER_NAME=""
+DOMAIN_NAME=""
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --loop)
+      RUNS=0
+      ;;
+    --runs)
+      RUNS="${2:-1}"
+      shift
+      ;;
+    --interval)
+      INTERVAL="${2:-20}"
+      shift
+      ;;
+    --user)
+      USER_NAME="${2:-}"
+      shift
+      ;;
+    --domain)
+      DOMAIN_NAME="${2:-}"
+      shift
+      ;;
+    --no-dns-repair)
+      REPAIR_DNS=false
+      ;;
+  esac
+  shift
+done
+
+if ! [[ "$RUNS" =~ ^[0-9]+$ ]] || ! [[ "$INTERVAL" =~ ^[0-9]+$ ]]; then
+  echo "RUNS and INTERVAL must be integers" >&2
+  exit 1
+fi
 
 if [ ! -r "$ENV_FILE" ]; then
   exit 0
@@ -20,9 +58,37 @@ if [ -z "$TOKEN" ]; then
   exit 0
 fi
 
-flock -n "$LOCK_FILE" curl -k -fsS \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -X POST \
-  "${BASE_URL%/}/api/whmlab/index.php?endpoint=ssl/sync" \
-  --data '{}' >/dev/null
+sync_once() {
+  local payload
+  payload=$(printf '{"repair_dns":%s' "$REPAIR_DNS")
+  if [ -n "$USER_NAME" ]; then
+    payload="${payload},\"username\":\"${USER_NAME//\"/\\\"}\""
+  fi
+  if [ -n "$DOMAIN_NAME" ]; then
+    payload="${payload},\"domain\":\"${DOMAIN_NAME//\"/\\\"}\""
+  fi
+  payload="${payload}}"
+
+  flock -n "$LOCK_FILE" curl -k -fsS --connect-timeout 5 --max-time 600 --retry 1 --retry-delay 2 \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -X POST \
+    "${BASE_URL%/}/api/whmlab/index.php?endpoint=ssl/sync" \
+    --data "$payload" >/dev/null
+}
+
+if [ "$RUNS" -eq 0 ]; then
+  while true; do
+    sync_once || true
+    sleep "$INTERVAL"
+  done
+fi
+
+count=0
+while [ "$count" -lt "$RUNS" ]; do
+  sync_once || true
+  count=$((count + 1))
+  if [ "$count" -lt "$RUNS" ]; then
+    sleep "$INTERVAL"
+  fi
+done

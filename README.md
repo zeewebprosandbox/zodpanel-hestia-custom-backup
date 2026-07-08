@@ -13,6 +13,10 @@ Included scope:
 - WHMLab bridge API
 - Hestia panel template changes
 - phpMyAdmin SSO/open entrypoint changes
+- Roundcube/webmail SSO open entrypoint and Dovecot master-user setup command
+- Automated web/mail SSL sync and mail deliverability DNS repair
+- Real-time ZodPanel SSL systemd automation installer
+- Per-website terminal command runner for ZodPanel bridge actions
 - File manager bulk-permission customizations
 - Custom Hestia helper commands
 
@@ -26,3 +30,9 @@ Excluded scope:
 Restore note:
 
 Copy files back to the same absolute paths under `/usr/local/hestia`, preserve executable mode for files under `/usr/local/hestia/bin`, then restart Hestia if panel PHP/template files are changed.
+
+After restoring the SSL automation files, run:
+
+```bash
+/usr/local/hestia/bin/v-configure-zodpanel-ssl-automation 30
+```
