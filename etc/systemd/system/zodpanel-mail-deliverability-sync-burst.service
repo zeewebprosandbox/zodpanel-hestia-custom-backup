@@ -2,6 +2,8 @@
 Description=ZodPanel burst mail deliverability sync after Hestia data changes
 After=network-online.target hestia.service
 Wants=network-online.target
+StartLimitIntervalSec=30s
+StartLimitBurst=20
 
 [Service]
 Type=oneshot
