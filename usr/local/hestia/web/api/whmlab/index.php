@@ -1999,6 +1999,35 @@ if ($method === "POST" && $path === "nodejs/action") {
 	whmpanel_json(whmpanel_run_soft(["v-zodpanel-node-app", $action, $user, $domain], true));
 }
 
+
+if ($path === "git/webhook") {
+	$user = (string) ($input["username"] ?? $_GET["username"] ?? "admin");
+	$domain = (string) ($input["domain"] ?? $_GET["domain"] ?? "");
+	$repo = (string) ($input["repository"]["clone_url"] ?? $input["repo_url"] ?? "");
+	$branch = (string) ($input["branch"] ?? "main");
+	whmpanel_json(whmpanel_run_soft(["v-zodpanel-git-deploy", $user, $domain, $repo, $branch], true));
+}
+
+if ($method === "POST" && $path === "snapshot/action") {
+	$action = (string) ($input["action"] ?? "create");
+	$user = (string) ($input["username"] ?? "admin");
+	$domain = (string) ($input["domain"] ?? "");
+	$snapId = (string) ($input["snapshot_id"] ?? "");
+	whmpanel_json(whmpanel_run_soft(["v-zodpanel-snapshot", $action, $user, $domain, $snapId], true));
+}
+
+if ($method === "POST" && $path === "terminal/exec") {
+	$user = (string) ($input["username"] ?? "admin");
+	$cmd = (string) ($input["command"] ?? "pwd");
+	$userHome = "/home/" . preg_replace("/[^a-zA-Z0-9_-]/", "", $user);
+	if (!is_dir($userHome)) {
+		whmpanel_error("User directory does not exist", 400);
+	}
+	$escapedCmd = escapeshellarg("cd " . escapeshellarg($userHome) . " && " . $cmd);
+	$out = shell_exec("bash -c " . $escapedCmd . " 2>&1");
+	whmpanel_json(["success" => true, "output" => (string) $out]);
+}
+
 if ($method === "GET" && $path === "server/info") {
 	$config = whmpanel_run(["v-list-sys-config"], true);
 	whmpanel_json([

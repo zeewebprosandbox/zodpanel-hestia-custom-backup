@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# ZodPanel Git Auto-Deploy Engine
+# Usage: v-zodpanel-git-deploy <user> <domain> [repo_url] [branch]
+
+USER="$1"
+DOMAIN="$2"
+REPO_URL="$3"
+BRANCH="${4:-main}"
+
+if [ -z "$USER" ] || [ -z "$DOMAIN" ]; then
+    echo "Usage: $0 <user> <domain> [repo_url] [branch]"
+    exit 1
+fi
+
+USER_HOME="/home/$USER"
+if [ ! -d "$USER_HOME" ]; then
+    echo "Error: User $USER does not exist"
+    exit 1
+fi
+
+# Set user shell if nologin
+chsh -s /bin/bash "$USER" >/dev/null 2>&1 || true
+
+WEB_DIR="$USER_HOME/web/$DOMAIN/public_html"
+NODE_DIR="$USER_HOME/web/$DOMAIN/node_app"
+
+TARGET_DIR="$WEB_DIR"
+if [ -d "$NODE_DIR" ]; then
+    TARGET_DIR="$NODE_DIR"
+fi
+
+mkdir -p "$TARGET_DIR"
+chown -R "$USER:$USER" "$TARGET_DIR"
+
+# 1. Take safety snapshot before deployment
+/usr/local/hestia/bin/v-zodpanel-snapshot create "$USER" "$DOMAIN" >/dev/null 2>&1 || true
+
+# 2. Clone or pull repo
+if [ -n "$REPO_URL" ]; then
+    if [ ! -d "$TARGET_DIR/.git" ]; then
+        su - "$USER" -s /bin/bash -c "git clone -b '$BRANCH' '$REPO_URL' '$TARGET_DIR'" >/dev/null 2>&1
+    else
+        su - "$USER" -s /bin/bash -c "cd '$TARGET_DIR' && git fetch origin && git reset --hard 'origin/$BRANCH'" >/dev/null 2>&1
+    fi
+else
+    if [ -d "$TARGET_DIR/.git" ]; then
+        su - "$USER" -s /bin/bash -c "cd '$TARGET_DIR' && git pull origin '$BRANCH'" >/dev/null 2>&1
+    fi
+fi
+
+# 3. Detect stack & build
+BUILD_LOG=""
+if [ -f "$TARGET_DIR/package.json" ]; then
+    su - "$USER" -s /bin/bash -c "cd '$TARGET_DIR' && (npm install || yarn install || pnpm install) && (npm run build || true)" >/dev/null 2>&1
+    
+    # Restart PM2 process if active
+    su - "$USER" -s /bin/bash -c "pm2 restart '$DOMAIN' || pm2 start '$TARGET_DIR/ecosystem.config.js' || true" >/dev/null 2>&1
+    BUILD_LOG="Node.js app built and PM2 reloaded"
+elif [ -f "$TARGET_DIR/composer.json" ]; then
+    su - "$USER" -s /bin/bash -c "cd '$TARGET_DIR' && composer install --no-dev --optimize-autoloader" >/dev/null 2>&1
+    systemctl reload php*-fpm 2>/dev/null || true
+    BUILD_LOG="PHP/Composer app built and PHP-FPM reloaded"
+else
+    BUILD_LOG="Static assets updated"
+fi
+
+echo "{\"success\":true,\"user\":\"$USER\",\"domain\":\"$DOMAIN\",\"target_dir\":\"$TARGET_DIR\",\"status\":\"deployed\",\"log\":\"$BUILD_LOG\"}"

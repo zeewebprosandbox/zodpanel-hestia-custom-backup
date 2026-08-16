@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# ZodPanel 5-Second Snapshot & Instant Rollback Engine
+# Usage: v-zodpanel-snapshot <action: create|rollback|list> <user> <domain> [snapshot_id]
+
+ACTION="$1"
+USER="$2"
+DOMAIN="$3"
+SNAPSHOT_ID="$4"
+
+if [ -z "$ACTION" ] || [ -z "$USER" ] || [ -z "$DOMAIN" ]; then
+    echo "Usage: $0 <create|rollback|list> <user> <domain> [snapshot_id]"
+    exit 1
+fi
+
+USER_HOME="/home/$USER"
+SNAP_DIR="$USER_HOME/snapshots/$DOMAIN"
+mkdir -p "$SNAP_DIR"
+chown -R "$USER:$USER" "$USER_HOME/snapshots"
+
+case "$ACTION" in
+    create)
+        TS=$(date +%Y%m%d_%H%M%S)
+        SNAP_FILE="$SNAP_DIR/snapshot_$TS.tar.gz"
+        
+        WEB_DIR="$USER_HOME/web/$DOMAIN"
+        if [ -d "$WEB_DIR" ]; then
+            tar -czf "$SNAP_FILE" -C "$WEB_DIR" . >/dev/null 2>&1
+            chown "$USER:$USER" "$SNAP_FILE"
+            
+            # Keep only last 5 snapshots
+            ls -t "$SNAP_DIR"/snapshot_*.tar.gz 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
+            
+            echo "{\"success\":true,\"snapshot_id\":\"snapshot_$TS\",\"path\":\"$SNAP_FILE\"}"
+        else
+            echo "{\"success\":false,\"error\":\"Web directory for $DOMAIN does not exist\"}"
+        fi
+        ;;
+        
+    rollback)
+        if [ -z "$SNAPSHOT_ID" ]; then
+            SNAPSHOT_ID=$(ls -t "$SNAP_DIR"/snapshot_*.tar.gz 2>/dev/null | head -n 1 | xargs -n 1 basename 2>/dev/null | sed 's/\.tar\.gz//')
+        fi
+        
+        TARGET_SNAP="$SNAP_DIR/${SNAPSHOT_ID}.tar.gz"
+        if [ ! -f "$TARGET_SNAP" ]; then
+            TARGET_SNAP="$SNAP_DIR/${SNAPSHOT_ID}"
+        fi
+        
+        if [ -f "$TARGET_SNAP" ]; then
+            WEB_DIR="$USER_HOME/web/$DOMAIN"
+            rm -rf "$WEB_DIR"/*
+            tar -xzf "$TARGET_SNAP" -C "$WEB_DIR" >/dev/null 2>&1
+            chown -R "$USER:$USER" "$WEB_DIR"
+            
+            # Restart service
+            su - "$USER" -s /bin/bash -c "pm2 restart '$DOMAIN' || true" >/dev/null 2>&1
+            systemctl reload php*-fpm 2>/dev/null || true
+            
+            echo "{\"success\":true,\"action\":\"rollback\",\"snapshot_id\":\"$SNAPSHOT_ID\"}"
+        else
+            echo "{\"success\":false,\"error\":\"Snapshot $SNAPSHOT_ID not found\"}"
+        fi
+        ;;
+        
+    list)
+        snaps=$(ls -t "$SNAP_DIR"/snapshot_*.tar.gz 2>/dev/null | xargs -n 1 basename 2>/dev/null | sed 's/\.tar\.gz//' | jq -R . | jq -s .)
+        if [ -z "$snaps" ] || [ "$snaps" = "null" ]; then
+            echo "[]"
+        else
+            echo "$snaps"
+        fi
+        ;;
+        
+    *)
+        echo "Invalid action: $ACTION"
+        exit 1
+        ;;
+esac

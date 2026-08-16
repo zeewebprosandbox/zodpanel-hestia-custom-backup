@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# zodctl — Developer Command-Line Tool for ZodPanel
+# Usage: zodctl <command> [args]
+
+COMMAND="$1"
+shift
+
+case "$COMMAND" in
+    deploy)
+        USER="${1:-admin}"
+        DOMAIN="$2"
+        REPO_URL="$3"
+        BRANCH="${4:-main}"
+        
+        if [ -z "$DOMAIN" ]; then
+            echo "Usage: zodctl deploy <user> <domain> [repo_url] [branch]"
+            exit 1
+        fi
+        
+        /usr/local/hestia/bin/v-zodpanel-git-deploy "$USER" "$DOMAIN" "$REPO_URL" "$BRANCH"
+        ;;
+        
+    status)
+        USER="${1:-admin}"
+        DOMAIN="$2"
+        
+        echo "=== PM2 Applications for User: $USER ==="
+        /usr/local/hestia/bin/v-zodpanel-node-app list "$USER"
+        ;;
+        
+    logs)
+        USER="${1:-admin}"
+        DOMAIN="$2"
+        LINES="${3:-50}"
+        
+        if [ -z "$DOMAIN" ]; then
+            echo "Usage: zodctl logs <user> <domain> [lines]"
+            exit 1
+        fi
+        
+        /usr/local/hestia/bin/v-zodpanel-node-app logs "$USER" "$DOMAIN" "$LINES"
+        ;;
+        
+    snapshot)
+        ACTION="${1:-create}"
+        USER="${2:-admin}"
+        DOMAIN="$3"
+        SNAP_ID="$4"
+        
+        if [ -z "$DOMAIN" ]; then
+            echo "Usage: zodctl snapshot <create|rollback|list> <user> <domain> [snapshot_id]"
+            exit 1
+        fi
+        
+        /usr/local/hestia/bin/v-zodpanel-snapshot "$ACTION" "$USER" "$DOMAIN" "$SNAP_ID"
+        ;;
+        
+    rollback)
+        USER="${1:-admin}"
+        DOMAIN="$2"
+        SNAP_ID="$3"
+        
+        if [ -z "$DOMAIN" ]; then
+            echo "Usage: zodctl rollback <user> <domain> [snapshot_id]"
+            exit 1
+        fi
+        
+        /usr/local/hestia/bin/v-zodpanel-snapshot rollback "$USER" "$DOMAIN" "$SNAP_ID"
+        ;;
+        
+    db:export)
+        USER="${1:-admin}"
+        DB_NAME="$2"
+        OUT_FILE="${3:-backup.sql}"
+        
+        if [ -z "$DB_NAME" ]; then
+            echo "Usage: zodctl db:export <user> <database_name> [output_file.sql]"
+            exit 1
+        fi
+        
+        /usr/local/hestia/bin/v-dump-database "$USER" "$DB_NAME" > "$OUT_FILE"
+        echo "Database $DB_NAME exported to $OUT_FILE"
+        ;;
+        
+    version|--version|-v)
+        echo "zodctl v2.0.0 (ZodPanel Developer CLI)"
+        ;;
+        
+    *)
+        echo "zodctl — Developer Command Line Interface for ZodPanel"
+        echo "Commands:"
+        echo "  deploy <user> <domain> [repo_url] [branch]  Deploy application from Git"
+        echo "  status <user> [domain]                     Check PM2 & app status"
+        echo "  logs <user> <domain> [lines]               Stream app logs"
+        echo "  snapshot <create|rollback|list> <user> ... Manage 5-second snapshots"
+        echo "  rollback <user> <domain> [snapshot_id]     Instant 1-click rollback"
+        echo "  db:export <user> <database> [output.sql]   Export database dump"
+        ;;
+esac
