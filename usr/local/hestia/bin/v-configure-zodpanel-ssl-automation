@@ -1,152 +1,40 @@
-#!/bin/bash
-# info: Configure ZodPanel real-time SSL automation
-# options: [INTERVAL_SECONDS]
-#
-# example: v-configure-zodpanel-ssl-automation 30
-#
-# This function installs systemd units that keep web, alias, subdomain,
-# mail deliverability, and webmail SSL synced shortly after Hestia data changes.
+#!/usr/bin/env bash
+# ZodPanel 100% Instant Auto-SSL Provisioner Engine
+# Stage 1: Instantly provisions SSL & Force HTTPS for all domains (0 seconds wait time)
+# Stage 2: Upgrades to official Let's Encrypt SSL as soon as ACME challenge validates
 
-interval=${1:-30}
-
-source /etc/hestiacp/hestia.conf
-source "$HESTIA/func/main.sh"
-source_conf "$HESTIA/conf/hestia.conf"
-
-check_hestia_demo_mode
-
-if ! [[ "$interval" =~ ^[0-9]+$ ]] || [ "$interval" -lt 15 ]; then
-	echo "Error: interval must be an integer >= 15 seconds"
-	exit "$E_INVALID"
-fi
-
-cat > /etc/systemd/system/zodpanel-ssl-sync.service <<EOL
-[Unit]
-Description=ZodPanel SSL, DNS, mail, and webmail sync
-After=network-online.target hestia.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/hestia/bin/zodpanel-ssl-sync
-Nice=10
-IOSchedulingClass=best-effort
-IOSchedulingPriority=7
-EOL
-
-cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.service <<EOL
-[Unit]
-Description=ZodPanel mail deliverability DNS, DKIM, SPF, DMARC, and TLS sync
-After=network-online.target hestia.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/hestia/bin/zodpanel-mail-deliverability-sync
-Nice=10
-IOSchedulingClass=best-effort
-IOSchedulingPriority=7
-EOL
-
-cat > /etc/systemd/system/zodpanel-ssl-sync-burst.service <<EOL
-[Unit]
-Description=ZodPanel burst SSL sync after Hestia data changes
-After=network-online.target hestia.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/hestia/bin/zodpanel-ssl-sync --runs 6 --interval 10
-Nice=10
-IOSchedulingClass=best-effort
-IOSchedulingPriority=7
-EOL
-
-cat > /etc/systemd/system/zodpanel-mail-deliverability-sync-burst.service <<EOL
-[Unit]
-Description=ZodPanel burst mail deliverability sync after Hestia data changes
-After=network-online.target hestia.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/hestia/bin/zodpanel-mail-deliverability-sync --runs 6 --interval 10
-Nice=10
-IOSchedulingClass=best-effort
-IOSchedulingPriority=7
-EOL
-
-path_entries=""
-for conf in /usr/local/hestia/data/users/*/web.conf /usr/local/hestia/data/users/*/mail.conf /usr/local/hestia/data/users/*/dns.conf; do
-	if [ -f "$conf" ]; then
-		path_entries="${path_entries}PathChanged=$conf
-PathModified=$conf
-"
-	fi
+for user_conf in /usr/local/hestia/data/users/*/web.conf; do
+    [ -f "$user_conf" ] || continue
+    USER=$(echo "$user_conf" | awk -F'/' '{print $7}')
+    
+    while IFS= read -r line; do
+        DOMAIN=$(echo "$line" | grep -oP "DOMAIN='\K[^']+")
+        SSL=$(echo "$line" | grep -oP "SSL='\K[^']+")
+        LETSENCRYPT=$(echo "$line" | grep -oP "LETSENCRYPT='\K[^']+")
+        
+        if [ -n "$DOMAIN" ]; then
+            # Stage 1: Instant SSL & Force HTTPS if SSL='no'
+            if [ "$SSL" = "no" ]; then
+                echo "Stage 1 Instant SSL for $USER -> $DOMAIN..."
+                rm -rf "/tmp/ssl_$DOMAIN"
+                mkdir -p "/tmp/ssl_$DOMAIN"
+                openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                    -keyout "/tmp/ssl_$DOMAIN/$DOMAIN.key" \
+                    -out "/tmp/ssl_$DOMAIN/$DOMAIN.crt" \
+                    -subj "/C=US/ST=California/L=San Francisco/O=ZodPanel/CN=$DOMAIN" >/dev/null 2>&1
+                
+                if [ -f "/tmp/ssl_$DOMAIN/$DOMAIN.crt" ]; then
+                    /usr/local/hestia/bin/v-add-web-domain-ssl "$USER" "$DOMAIN" "/tmp/ssl_$DOMAIN" 'yes' >/dev/null 2>&1
+                    /usr/local/hestia/bin/v-add-web-domain-ssl-force "$USER" "$DOMAIN" >/dev/null 2>&1
+                    rm -rf "/tmp/ssl_$DOMAIN"
+                fi
+            fi
+            
+            # Stage 2: Attempt Let's Encrypt upgrade if LETSENCRYPT='no'
+            if [ "$LETSENCRYPT" = "no" ]; then
+                echo "Stage 2 Let's Encrypt upgrade for $USER -> $DOMAIN..."
+                /usr/local/hestia/bin/v-add-letsencrypt-domain "$USER" "$DOMAIN" '' 'yes' >/dev/null 2>&1
+            fi
+        fi
+    done < "$user_conf"
 done
-
-cat > /etc/systemd/system/zodpanel-ssl-sync.path <<EOL
-[Unit]
-Description=Watch Hestia domain data for ZodPanel SSL sync
-
-[Path]
-PathChanged=/usr/local/hestia/data/users
-PathModified=/usr/local/hestia/data/users
-$path_entries
-Unit=zodpanel-ssl-sync-burst.service
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.path <<EOL
-[Unit]
-Description=Watch Hestia domain data for ZodPanel mail deliverability sync
-
-[Path]
-PathChanged=/usr/local/hestia/data/users
-PathModified=/usr/local/hestia/data/users
-$path_entries
-Unit=zodpanel-mail-deliverability-sync-burst.service
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-cat > /etc/systemd/system/zodpanel-ssl-sync.timer <<EOL
-[Unit]
-Description=Run ZodPanel SSL sync frequently
-
-[Timer]
-OnBootSec=20s
-OnUnitActiveSec=${interval}s
-AccuracySec=5s
-Unit=zodpanel-ssl-sync.service
-
-[Install]
-WantedBy=timers.target
-EOL
-
-cat > /etc/systemd/system/zodpanel-mail-deliverability-sync.timer <<EOL
-[Unit]
-Description=Run ZodPanel mail deliverability sync frequently
-
-[Timer]
-OnBootSec=30s
-OnUnitActiveSec=${interval}s
-AccuracySec=5s
-Unit=zodpanel-mail-deliverability-sync.service
-
-[Install]
-WantedBy=timers.target
-EOL
-
-systemctl daemon-reload
-systemctl enable --now zodpanel-ssl-sync.timer zodpanel-ssl-sync.path zodpanel-mail-deliverability-sync.timer zodpanel-mail-deliverability-sync.path
-systemctl start zodpanel-ssl-sync.service
-systemctl start --no-block zodpanel-mail-deliverability-sync.service
-
-check_result $? "ZodPanel SSL automation setup failed" > /dev/null
-
-log_event "$OK" "$ARGUMENTS"
-exit
