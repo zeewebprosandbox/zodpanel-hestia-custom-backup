@@ -401,29 +401,11 @@ function authenticate_user($user, $password, $twofa = "") {
 		return false;
 	}
 }
-if (empty($_POST["user"])) {
-	$user = "";
-} else {
-	if (preg_match('/^[[:alnum:]][-|\.|_[:alnum:]]{0,28}[[:alnum:]]$/', $_POST["user"])) {
-		$_SESSION["login"]["username"] = $_POST["user"];
-	} else {
-		$user = "";
-	}
+if (!empty($_POST["user"])) {
+	$_SESSION["login"]["username"] = trim($_POST["user"]);
 }
-if (
-	!empty($_SESSION["login"]["username"]) &&
-	!empty($_SESSION["login"]["password"]) &&
-	!empty($_POST["twofa"])
-) {
-	$error = authenticate_user(
-		$_SESSION["login"]["username"],
-		$_SESSION["login"]["password"],
-		$_POST["twofa"],
-	);
-	unset($_POST);
-} elseif (!empty($_SESSION["login"]["username"]) && !empty($_POST["password"])) {
-	$error = authenticate_user($_SESSION["login"]["username"], $_POST["password"]);
-	unset($_POST);
+if (!empty($_POST["user"]) && !empty($_POST["password"])) {
+	$error = authenticate_user(trim($_POST["user"]), $_POST["password"], $_POST["twofa"] ?? "");
 }
 // Check system configuration
 load_hestia_config();
