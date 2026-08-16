@@ -343,9 +343,7 @@
  	? "<span class=\"u-text-bold\">∞</span>"
  	: $panel[$user]["WEB_ALIASES"] * $panel[$user]["WEB_DOMAINS"] ?>
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 
@@ -370,9 +368,7 @@
  	? "<span class=\"u-text-bold\">∞</span>"
  	: $panel[$user]["DNS_RECORDS"] * $panel[$user]["DNS_DOMAINS"] ?>
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 
@@ -397,9 +393,7 @@
  	? "<span class=\"u-text-bold\">∞</span>"
  	: $panel[$user]["MAIL_ACCOUNTS"] * $panel[$user]["MAIL_DOMAINS"] ?>
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 
@@ -419,9 +413,7 @@
  	"SUSPENDED_DB"
  ] ?>)
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 
@@ -441,9 +433,7 @@
  	"SUSPENDED_CRON"
  ] ?>)
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 
@@ -459,9 +449,7 @@
 									<li>
 										<?= _("Backups") ?>: <?= $panel[$user]["U_BACKUPS"] ?> / <?= $panel[$user]["BACKUPS"] == "unlimited" ? "<span class=\"u-text-bold\">∞</span>" : $panel[$user]["BACKUPS"] ?>
 									</li>
-								</ul>
-							</a>
-						</li>
+								<div class="zod-progress-meter"><div class="zod-progress-fill" style="width: 35%;"></div></div></ul></a></li>
 					<?php } ?>
 				<?php } ?>
 

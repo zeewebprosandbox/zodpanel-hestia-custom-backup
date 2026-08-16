@@ -397,3 +397,229 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ════════════════════════════════════════════════════════════
+   ZodPanel — Sleek Main Category Navigation Cards & Loading Bars
+   ════════════════════════════════════════════════════════════ */
+
+.main-menu {
+    background: transparent !important;
+    border: none !important;
+    padding: 16px 0 !important;
+}
+
+.main-menu-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+    gap: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+.main-menu-item {
+    margin: 0 !important;
+}
+
+.main-menu-item-link {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 94px !important;
+    padding: 14px 16px !important;
+    background: #121215 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.main-menu-item-link:hover {
+    background: #18181b !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.main-menu-item-link.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, #121215 100%) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25) !important;
+}
+
+.main-menu-item-link.active::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, #6366f1, #06b6d4) !important;
+}
+
+.main-menu-item-label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: #ffffff !important;
+    margin: 0 0 6px 0 !important;
+}
+
+.main-menu-item-label i {
+    font-size: 14px !important;
+    color: #6366f1 !important;
+    opacity: 0.9 !important;
+}
+
+.main-menu-stats {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 12px !important;
+    color: #a1a1aa !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    display: grid !important;
+    gap: 3px !important;
+}
+
+.main-menu-stats li {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* Resource Progress Meter Bar */
+.zod-progress-meter {
+    height: 4px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 9999px !important;
+    overflow: hidden !important;
+    margin-top: 8px !important;
+    width: 100% !important;
+}
+
+.zod-progress-fill {
+    height: 100% !important;
+    background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%) !important;
+    border-radius: 9999px !important;
+    transition: width 0.4s ease !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   ZodPanel — Sleek Action Toolbar & Button Overrides
+   ════════════════════════════════════════════════════════════ */
+
+.toolbar {
+    background: transparent !important;
+    border: none !important;
+    padding: 12px 0 20px !important;
+}
+
+.toolbar-inner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+}
+
+.js-button-create,
+.button-secondary {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+    padding: 0 20px !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    border: 1px solid #6366f1 !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.js-button-create:hover,
+.button-secondary:hover {
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5) !important;
+    transform: translateY(-1px) !important;
+    color: #ffffff !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   ZodPanel — Sleek Website List Cards Architecture
+   ════════════════════════════════════════════════════════════ */
+
+.units-table {
+    display: grid !important;
+    gap: 16px !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.unit {
+    background: #121215 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    padding: 20px 24px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-bottom: 0 !important;
+}
+
+.unit:hover {
+    background: #18181b !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Action Button Group inside Cards */
+.actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-top: 14px !important;
+    padding-top: 14px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.actions-button,
+.actions-item a {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 7px 14px !important;
+    background: #1c1c21 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+    color: #e4e4e7 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.actions-button:hover,
+.actions-item a:hover {
+    background: #27272a !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+}
+
+.actions-button.delete:hover,
+.actions-item.delete a:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #ef4444 !important;
+}
