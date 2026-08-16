@@ -1977,6 +1977,28 @@ if ($method === "POST" && $path === "sso/user") {
 	whmpanel_json(whmpanel_create_sso_token((string) ($input["username"] ?? ""), (string) ($input["redirect"] ?? "/list/web/")));
 }
 
+
+if ($method === "GET" && $path === "nodejs/apps") {
+	$user = (string) ($input["username"] ?? $_GET["username"] ?? "admin");
+	$apps = whmpanel_run_soft(["v-zodpanel-node-app", "list", $user], true);
+	whmpanel_json($apps["data"] ?? $apps);
+}
+
+if ($method === "POST" && $path === "nodejs/create") {
+	$user = (string) ($input["username"] ?? "admin");
+	$domain = (string) ($input["domain"] ?? "");
+	$entry = (string) ($input["entry"] ?? "app.js");
+	$port = (string) ($input["port"] ?? "");
+	whmpanel_json(whmpanel_run_soft(["v-zodpanel-node-app", "create", $user, $domain, $entry, $port], true));
+}
+
+if ($method === "POST" && $path === "nodejs/action") {
+	$action = (string) ($input["action"] ?? "restart");
+	$user = (string) ($input["username"] ?? "admin");
+	$domain = (string) ($input["domain"] ?? "");
+	whmpanel_json(whmpanel_run_soft(["v-zodpanel-node-app", $action, $user, $domain], true));
+}
+
 if ($method === "GET" && $path === "server/info") {
 	$config = whmpanel_run(["v-list-sys-config"], true);
 	whmpanel_json([

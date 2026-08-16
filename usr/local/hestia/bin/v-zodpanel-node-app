@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# ZodPanel Node.js Application Manager CLI
+# Usage: v-zodpanel-node-app <action> <user> [domain] [entry_point] [port]
+
+ACTION="$1"
+USER="$2"
+DOMAIN="$3"
+ENTRY="$4"
+PORT="$5"
+
+if [ -z "$ACTION" ] || [ -z "$USER" ]; then
+    echo "Usage: $0 <action: create|start|stop|restart|delete|list|logs> <user> [domain] [entry] [port]"
+    exit 1
+fi
+
+USER_HOME="/home/$USER"
+if [ ! -d "$USER_HOME" ]; then
+    echo "Error: User $USER does not exist"
+    exit 1
+fi
+
+# Ensure user shell can execute PM2
+chsh -s /bin/bash "$USER" >/dev/null 2>&1 || true
+chown -R "$USER:$USER" "$USER_HOME" >/dev/null 2>&1 || true
+
+find_available_port() {
+    local port=3000
+    while netstat -tuln | grep -q ":$port "; do
+        port=$((port + 1))
+    done
+    echo "$port"
+}
+
+case "$ACTION" in
+    create)
+        if [ -z "$DOMAIN" ]; then
+            echo "Error: Domain required for create action"
+            exit 1
+        fi
+        
+        APP_DIR="$USER_HOME/web/$DOMAIN/node_app"
+        mkdir -p "$APP_DIR"
+        
+        if [ -z "$PORT" ]; then
+            PORT=$(find_available_port)
+        fi
+        
+        if [ -z "$ENTRY" ]; then
+            ENTRY="app.js"
+        fi
+        
+        # Create sample Express/HTTP app if directory empty
+        if [ ! -f "$APP_DIR/$ENTRY" ] && [ ! -f "$APP_DIR/package.json" ]; then
+            cat <<EOF > "$APP_DIR/$ENTRY"
+const http = require('http');
+const port = process.env.PORT || $PORT;
+
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    res.end('<div style="font-family:sans-serif;text-align:center;padding:50px;"><h1>🚀 Node.js Application Live on ZodPanel!</h1><p>Domain: $DOMAIN | Port: ' + port + '</p></div>');
+});
+
+server.listen(port, () => {
+    console.log(\`Server running at http://127.0.0.1:\${port}/\`);
+});
+EOF
+        fi
+        
+        # Ecosystem configuration
+        cat <<EOF > "$APP_DIR/ecosystem.config.js"
+module.exports = {
+  apps: [{
+    name: "$DOMAIN",
+    script: "$ENTRY",
+    cwd: "$APP_DIR",
+    env: {
+      NODE_ENV: "production",
+      PORT: $PORT
+    }
+  }]
+};
+EOF
+        chown -R "$USER:$USER" "$APP_DIR"
+        
+        # Start app via PM2 as user
+        su - "$USER" -s /bin/bash -c "pm2 start '$APP_DIR/ecosystem.config.js' && pm2 save" >/dev/null 2>&1 || true
+        
+        # Switch web domain template to NodeJS proxy with allocated port
+        /usr/local/hestia/bin/v-change-web-domain-tpl "$USER" "$DOMAIN" "NodeJS" "no" >/dev/null 2>&1 || true
+        
+        echo "{\"success\":true,\"domain\":\"$DOMAIN\",\"port\":$PORT,\"app_dir\":\"$APP_DIR\",\"entry\":\"$ENTRY\"}"
+        ;;
+        
+    start)
+        su - "$USER" -s /bin/bash -c "pm2 start '$DOMAIN'" >/dev/null 2>&1
+        echo "{\"success\":true,\"action\":\"start\",\"domain\":\"$DOMAIN\"}"
+        ;;
+        
+    stop)
+        su - "$USER" -s /bin/bash -c "pm2 stop '$DOMAIN'" >/dev/null 2>&1
+        echo "{\"success\":true,\"action\":\"stop\",\"domain\":\"$DOMAIN\"}"
+        ;;
+        
+    restart)
+        su - "$USER" -s /bin/bash -c "pm2 restart '$DOMAIN'" >/dev/null 2>&1
+        echo "{\"success\":true,\"action\":\"restart\",\"domain\":\"$DOMAIN\"}"
+        ;;
+        
+    delete)
+        su - "$USER" -s /bin/bash -c "pm2 delete '$DOMAIN' && pm2 save" >/dev/null 2>&1
+        echo "{\"success\":true,\"action\":\"delete\",\"domain\":\"$DOMAIN\"}"
+        ;;
+        
+    list)
+        su - "$USER" -s /bin/bash -c "pm2 jlist" 2>/dev/null || echo "[]"
+        ;;
+        
+    logs)
+        LINES="${PORT:-50}"
+        su - "$USER" -s /bin/bash -c "pm2 logs '$DOMAIN' --lines $LINES --nostream" 2>/dev/null || echo "No logs available"
+        ;;
+        
+    *)
+        echo "Invalid action: $ACTION"
+        exit 1
+        ;;
+esac
