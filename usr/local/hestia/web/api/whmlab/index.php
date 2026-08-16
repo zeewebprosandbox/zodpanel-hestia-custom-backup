@@ -17,8 +17,46 @@ function whmpanel_error(string $message, int $status = 400): void {
 	exit;
 }
 
+function whmpanel_config_values(): array {
+	$confFile = "/etc/hestia/hestia.conf";
+	if (!is_readable($confFile)) {
+		return [];
+	}
+	$values = [];
+	foreach (file($confFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+		if (str_starts_with(trim($line), "#") || !str_contains($line, "=")) {
+			continue;
+		}
+		[$key, $value] = explode("=", $line, 2);
+		$values[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
+	}
+	return $values;
+}
+
+function whmpanel_features(array $config = []): array {
+	if (empty($config)) {
+		$config = whmpanel_config_values();
+	}
+	return [
+		"apache" => !empty($config["WEB_SYSTEM"]),
+		"nginx" => !empty($config["PROXY_SYSTEM"]),
+		"php_fpm" => !empty($config["WEB_BACKEND"]),
+		"bind" => !empty($config["DNS_SYSTEM"]),
+		"exim" => !empty($config["MAIL_SYSTEM"]),
+		"dovecot" => !empty($config["IMAP_SYSTEM"]),
+		"mysql" => !empty($config["DB_SYSTEM"]),
+		"vsftpd" => !empty($config["FTP_SYSTEM"]),
+		"iptables" => !empty($config["FIREWALL_SYSTEM"]),
+		"fail2ban" => !empty($config["FIREWALL_EXTENSION"]),
+		"clamav" => !empty($config["ANTIVIRUS_SYSTEM"]),
+		"spamassassin" => !empty($config["ANTISPAM_SYSTEM"]),
+	];
+}
 function whmpanel_config(string $key, ?string $default = null): ?string {
 	$envFile = "/etc/whmpanel/node.env";
+	if (!is_readable($envFile)) {
+		$envFile = "/usr/local/hestia/conf/whmpanel.env";
+	}
 	if (!is_readable($envFile)) {
 		return getenv($key) ?: $default;
 	}
@@ -1919,11 +1957,11 @@ function whmpanel_consume_sso_token(string $token): void {
 
 $path = trim((string) ($_GET["endpoint"] ?? ""), "/");
 if ($path === "") {
-	$path = trim(parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH) ?? "", "/");
+	$path = trim(parse_url((string) ($_SERVER["REQUEST_URI"] ?? ""), PHP_URL_PATH) ?? "", "/");
 	$path = preg_replace("#^api/whmlab/?#", "", $path);
 	$path = preg_replace("#^api/whmlab/index\.php/?#", "", $path);
 }
-$method = $_SERVER["REQUEST_METHOD"];
+$method = ($_SERVER["REQUEST_METHOD"] ?? "GET");
 $input = whmpanel_input();
 
 if ($path !== "sso/consume") {
