@@ -1,9 +1,9 @@
 /* ============================================================
-   ZodPanel Cloud OS — Pixel-Perfect Fitted SaaS Design (v3.2)
-   Compact Typography • Perfect Grid Alignment • Sleek Micro-Icons
+   ZodPanel Cloud OS — World-Class Aligned SaaS Interface (v3.3)
+   100% Column Header Matching • Jaw-Dropping Aesthetics & Flow
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
     --zod-canvas: #09090c;
@@ -58,7 +58,7 @@ body {
     content: none !important;
 }
 
-/* ── 1. HEADER & BRAND BAR (COMPACT & SLEEK) ────────────────── */
+/* ── 1. HEADER & BRAND BAR ──────────────────────────────────── */
 .app-header {
     background: transparent !important;
     position: static !important;
@@ -341,44 +341,96 @@ input[type="checkbox"]:checked::after {
     line-height: 1 !important;
 }
 
-/* ── 5. SEPARATED COMPACT BENTO CARD ROWS ───────────────────── */
+/* ── 5. PERFECTLY MATCHED & ALIGNED TABLE COLUMNS ───────────── */
 .units-table {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
+    display: table !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 8px !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    overflow: visible !important;
 }
 
 .units-table-header {
+    display: table-row !important;
     background: #111116 !important;
-    border: 1px solid var(--zod-border) !important;
-    border-radius: 8px !important;
     font-size: 11px !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
     color: var(--zod-text-muted) !important;
-    padding: 10px 18px !important;
+}
+
+.units-table-header .units-table-cell {
+    background: #111116 !important;
+    border-top: 1px solid var(--zod-border) !important;
+    border-bottom: 1px solid var(--zod-border) !important;
+    padding: 12px 14px !important;
+}
+
+.units-table-header .units-table-cell:first-child {
+    border-left: 1px solid var(--zod-border) !important;
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+    width: 36px !important;
+    text-align: center !important;
+}
+
+.units-table-header .units-table-cell:last-child {
+    border-right: 1px solid var(--zod-border) !important;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
 }
 
 .units-table-row, .unit, .units {
+    display: table-row !important;
     background: var(--zod-surface-card) !important;
-    border: 1px solid var(--zod-border) !important;
-    border-radius: 10px !important;
-    padding: 12px 18px !important;
     transition: all 0.2s ease !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
-    position: relative !important;
 }
 
-.units-table-row:hover, .unit:hover, .units:hover {
+.units-table-row .units-table-cell,
+.unit .units-table-cell,
+.units .units-table-cell {
+    display: table-cell !important;
+    vertical-align: middle !important;
+    background: var(--zod-surface-card) !important;
+    border-top: 1px solid var(--zod-border) !important;
+    border-bottom: 1px solid var(--zod-border) !important;
+    padding: 12px 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.units-table-row .units-table-cell:first-child,
+.unit .units-table-cell:first-child,
+.units .units-table-cell:first-child {
+    border-left: 1px solid var(--zod-border) !important;
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+    width: 36px !important;
+    text-align: center !important;
+}
+
+.units-table-row .units-table-cell:last-child,
+.unit .units-table-cell:last-child,
+.units .units-table-cell:last-child {
+    border-right: 1px solid var(--zod-border) !important;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+}
+
+/* Hover Glow for the Entire Row */
+.units-table-row:hover .units-table-cell,
+.unit:hover .units-table-cell,
+.units:hover .units-table-cell {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-border-hover) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 2px 0 0 var(--zod-primary) !important;
+}
+
+.units-table-row:hover .units-table-cell:first-child,
+.unit:hover .units-table-cell:first-child,
+.units:hover .units-table-cell:first-child {
+    box-shadow: inset 3px 0 0 var(--zod-primary) !important;
 }
 
 /* ── 6. SLEEK MICRO ACTION BUTTONS (NO TEXT OVERLAP) ────────── */
@@ -387,11 +439,11 @@ input[type="checkbox"]:checked::after {
 .actions {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 5px !important;
+    gap: 4px !important;
     opacity: 1 !important;
     visibility: visible !important;
     list-style: none !important;
-    margin: 0 0 0 10px !important;
+    margin: 0 !important;
     padding: 0 !important;
     vertical-align: middle !important;
 }
