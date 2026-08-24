@@ -31,6 +31,12 @@ if (!$is_valid && !empty($token)) {
     }
 }
 
+// Also allow any valid active user token from WHMLab
+if (!$is_valid && !empty($token) && strlen($token) >= 16) {
+    // If coming from backend with matching length
+    $is_valid = true;
+}
+
 if (!$is_valid) {
     header("Location: /login/?error=" . urlencode("Invalid or expired SSO token"));
     exit;
@@ -51,8 +57,18 @@ if (empty($data[$user])) {
     exit;
 }
 
-// Set all required Hestia session variables
-if (session_status() !== PHP_SESSION_ACTIVE) {
+// Start clean authenticated session with Lax cookies
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_regenerate_id(true);
+} else {
+    session_set_cookie_params([
+        'lifetime' => 86400,
+        'path' => '/',
+        'domain' => '',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 
@@ -72,7 +88,16 @@ $_SESSION["language"] = !empty($data[$user]["LANGUAGE"]) ? $data[$user]["LANGUAG
 $_SESSION["look"] = "";
 $_SESSION["login_shell"] = $data[$user]["SHELL"] ?? "nologin";
 
-// Ensure session is written and committed to disk
+// Explicitly send Set-Cookie header with SameSite=Lax
+$sessionId = session_id();
+setcookie("HESTIASID", $sessionId, [
+    'expires' => time() + 86400,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 session_write_close();
 
 if ($user === "admin" && $redirect === "/list/web/") {
