@@ -1,6 +1,6 @@
 /* ============================================================
-   ZodPanel Cloud OS — 100% Mobile-Fitted & Responsive Design (v3.5)
-   Desktop Table Grid • Mobile Bento Cards • Touch-Optimized
+   ZodPanel Cloud OS — State of the Art Mobile UX (v3.6)
+   Clean Swipeable Nav • Zero Clutter • Ultra-Sleek Bento Cards
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -46,7 +46,7 @@ body {
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
     font-size: 13px !important;
-    overflow-x: hidden;
+    overflow-x: hidden !important;
 }
 
 /* ── Container Layout ───────────────────────────────────────── */
@@ -63,14 +63,20 @@ body {
     box-sizing: border-box !important;
 }
 
-/* ── Eliminate Default Artifacts ────────────────────────────── */
+/* ── Eliminate Default Artifacts & Clumsy Toggles ───────────── */
 .main-menu-item-link::after,
 .main-menu-item-link::before,
 .main-menu-stats,
 .zod-progress-meter,
-.zod-progress-fill {
+.zod-progress-fill,
+.main-menu-toggle,
+.main-menu-toggle-label {
     display: none !important;
     content: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* ── 1. HEADER & BRAND BAR ──────────────────────────────────── */
@@ -80,7 +86,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 8px !important;
 }
 
 .top-bar {
@@ -90,7 +96,7 @@ body {
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     padding: 10px 0 !important;
-    min-height: 52px !important;
+    min-height: 50px !important;
     display: block !important;
     width: 100% !important;
 }
@@ -100,13 +106,13 @@ body {
     align-items: center !important;
     justify-content: space-between !important;
     flex-wrap: wrap !important;
-    gap: 10px !important;
+    gap: 8px !important;
 }
 
 .top-bar-left {
     display: flex !important;
     align-items: center !important;
-    gap: 16px !important;
+    gap: 12px !important;
     flex-wrap: wrap !important;
 }
 
@@ -146,8 +152,10 @@ body {
 .top-bar-usage-inner {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
 }
 
 .top-bar-usage-item {
@@ -157,10 +165,11 @@ body {
     color: var(--zod-text-muted) !important;
     font-size: 11px !important;
     font-weight: 600 !important;
-    padding: 4px 12px !important;
+    padding: 3px 10px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 5px !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
 }
 
 .top-bar-right {
@@ -199,27 +208,28 @@ body {
     color: #ffffff !important;
 }
 
-/* ── 2. SCROLLABLE HORIZONTAL NAVIGATION ON MOBILE ──────────── */
+/* ── 2. SCROLLABLE HORIZONTAL NAVIGATION TABS ───────────────── */
 .main-menu {
     position: static !important;
     background: rgba(18, 18, 24, 0.8) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     backdrop-filter: blur(16px) !important;
-    padding: 8px 0 !important;
+    padding: 6px 0 !important;
     display: block !important;
     width: 100% !important;
 }
 
 .main-menu-list {
     display: flex !important;
-    gap: 8px !important;
+    gap: 6px !important;
     align-items: center !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 4px !important;
     list-style: none !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
+    flex-wrap: nowrap !important;
 }
 
 .main-menu-list::-webkit-scrollbar {
@@ -234,10 +244,10 @@ body {
     background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
-    padding: 6px 14px !important;
+    padding: 5px 12px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
     text-decoration: none !important;
     transition: all 0.2s ease !important;
     white-space: nowrap !important;
@@ -245,19 +255,19 @@ body {
 
 .main-menu-item-label {
     color: var(--zod-text-muted) !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: 0.03em !important;
     margin: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
 }
 
 .main-menu-item-link.active {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
     border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 12px var(--zod-primary-glow) !important;
+    box-shadow: 0 0 10px var(--zod-primary-glow) !important;
 }
 
 .main-menu-item-link.active .main-menu-item-label {
@@ -273,8 +283,8 @@ body {
     background: var(--zod-surface) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
-    padding: 10px 16px !important;
-    margin: 16px auto !important;
+    padding: 10px 14px !important;
+    margin: 12px auto !important;
     max-width: 1280px !important;
     box-sizing: border-box !important;
     backdrop-filter: blur(16px) !important;
@@ -285,7 +295,7 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 12px !important;
+    gap: 10px !important;
     flex-wrap: wrap !important;
     padding: 0 !important;
     max-width: 100% !important;
@@ -460,23 +470,48 @@ input[type="checkbox"]:checked::after {
         padding-right: 12px !important;
     }
 
+    .top-bar-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    .top-bar-left {
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+
+    .top-bar-right {
+        justify-content: flex-end !important;
+    }
+
     .top-bar-usage-inner {
         gap: 6px !important;
+        overflow-x: auto !important;
+        width: 100% !important;
+        padding-bottom: 2px !important;
     }
 
     .top-bar-usage-item {
         font-size: 10px !important;
         padding: 3px 8px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .toolbar {
+        margin: 8px auto !important;
+        padding: 10px !important;
     }
 
     .toolbar-inner {
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 10px !important;
+        gap: 8px !important;
     }
 
     .button-primary, .js-button-create {
         width: 100% !important;
+        min-height: 40px !important;
     }
 
     .units-table {
@@ -484,6 +519,7 @@ input[type="checkbox"]:checked::after {
         flex-direction: column !important;
         gap: 12px !important;
         width: 100% !important;
+        padding: 0 !important;
     }
 
     .units-table-header {
@@ -495,10 +531,10 @@ input[type="checkbox"]:checked::after {
         flex-direction: column !important;
         background: var(--zod-surface-card) !important;
         border: 1px solid var(--zod-border) !important;
-        border-radius: 12px !important;
-        padding: 14px !important;
-        gap: 8px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 14px !important;
+        padding: 16px !important;
+        gap: 10px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
     }
 
     .units-table-cell {
@@ -530,6 +566,7 @@ input[type="checkbox"]:checked::after {
     .units-table-row-action a {
         width: 32px !important;
         height: 32px !important;
+        border-radius: 6px !important;
     }
 }
 
@@ -545,6 +582,7 @@ input[type="checkbox"]:checked::after {
     list-style: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    vertical-align: middle !important;
 }
 
 .units-table-row-actions span,
