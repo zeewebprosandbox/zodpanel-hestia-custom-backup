@@ -1,6 +1,6 @@
 /* ============================================================
-   ZodPanel Cloud OS — World-Class Aligned SaaS Interface (v3.3)
-   100% Column Header Matching • Jaw-Dropping Aesthetics & Flow
+   ZodPanel Cloud OS — Unified Fitted SaaS Layout (v3.4)
+   100% Horizontal Alignment • Unified Container • Minimalist Login
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -48,6 +48,20 @@ body {
     font-size: 13px !important;
 }
 
+/* ── Uniform Width Container (100% Aligned on Left & Right) ── */
+.container,
+.top-bar-inner,
+.main-menu .container,
+.toolbar-inner,
+.units-table {
+    max-width: 1280px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    box-sizing: border-box !important;
+}
+
 /* ── Eliminate Default Theme Artifacts ──────────────────────── */
 .main-menu-item-link::after,
 .main-menu-item-link::before,
@@ -65,7 +79,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 12px !important;
 }
 
 .top-bar {
@@ -75,7 +89,7 @@ body {
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     padding: 10px 0 !important;
-    min-height: 54px !important;
+    min-height: 52px !important;
     display: block !important;
     width: 100% !important;
 }
@@ -84,13 +98,12 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    width: 100% !important;
 }
 
 .top-bar-left {
     display: flex !important;
     align-items: center !important;
-    gap: 18px !important;
+    gap: 16px !important;
 }
 
 .top-bar-logo img {
@@ -139,8 +152,8 @@ body {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text-muted) !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 30px !important;
+    height: 30px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -234,7 +247,9 @@ body {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
     padding: 10px 16px !important;
-    margin: 16px 0 !important;
+    margin: 16px auto !important;
+    max-width: 1280px !important;
+    box-sizing: border-box !important;
     backdrop-filter: blur(16px) !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
@@ -245,6 +260,8 @@ body {
     justify-content: space-between !important;
     gap: 12px !important;
     flex-wrap: wrap !important;
+    padding: 0 !important;
+    max-width: 100% !important;
 }
 
 .button, .btn, .zod-action-button {
@@ -345,11 +362,13 @@ input[type="checkbox"]:checked::after {
 .units-table {
     display: table !important;
     width: 100% !important;
+    max-width: 1280px !important;
     border-collapse: separate !important;
     border-spacing: 0 8px !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    margin: 0 auto !important;
 }
 
 .units-table-header {
@@ -448,7 +467,6 @@ input[type="checkbox"]:checked::after {
     vertical-align: middle !important;
 }
 
-/* HIDE any overlapping span text labels inside action buttons */
 .units-table-row-actions span,
 .units-table-row-action span,
 .units-table-row-action-link span,
