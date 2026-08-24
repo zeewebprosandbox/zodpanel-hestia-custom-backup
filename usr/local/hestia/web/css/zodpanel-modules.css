@@ -1,6 +1,6 @@
 /* ============================================================
-   ZodPanel Cloud OS — World-Class Sexy & Modern Interface (v3.0)
-   Linear • Stripe • Vercel High-End Aesthetics
+   ZodPanel Cloud OS — Sexy, Modern & High-End UX Design (v3.1)
+   Generous Spacing • Zero Overlap • Permanent Visible Actions
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -45,6 +45,7 @@ body {
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
     min-height: 100vh;
+    padding-top: 0 !important;
 }
 
 /* ── Eliminate Default Theme Pink Lines / Borders / Artifacts ─ */
@@ -59,24 +60,27 @@ body {
     border: none !important;
 }
 
-/* ── 1. HEADER & TOP BAR (PROPER SPACING & NO OVERLAP) ──────── */
+/* ── 1. HEADER & TOP BAR (PERFECT SEPARATION & NO OVERLAP) ──── */
 .app-header {
     background: transparent !important;
-    position: relative !important;
-    z-index: 100 !important;
-    border-bottom: none !important;
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
     margin-bottom: 24px !important;
+    box-shadow: none !important;
 }
 
 .top-bar {
+    position: static !important;
     background: rgba(14, 14, 18, 0.95) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     padding: 14px 0 !important;
     min-height: 64px !important;
-    display: flex !important;
-    align-items: center !important;
+    display: block !important;
+    width: 100% !important;
 }
 
 .top-bar-inner {
@@ -84,6 +88,12 @@ body {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
+}
+
+.top-bar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
 }
 
 /* Hide legacy Hestia image, display sleek ZODPANEL cloud logo */
@@ -116,12 +126,6 @@ body {
 }
 
 /* Top Bar Stats / Usage Pills */
-.top-bar-left {
-    display: flex !important;
-    align-items: center !important;
-    gap: 20px !important;
-}
-
 .top-bar-usage {
     display: flex !important;
     align-items: center !important;
@@ -191,15 +195,16 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* ── 2. MAIN NAVIGATION (CLEAN, SEPARATED & BEAUTIFUL) ───────── */
+/* ── 2. MAIN NAVIGATION (SEPARATED WITH PROPER SPACING) ──────── */
 .main-menu {
-    background: rgba(18, 18, 24, 0.7) !important;
+    position: static !important;
+    background: rgba(18, 18, 24, 0.8) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     padding: 12px 0 !important;
-    position: relative !important;
-    clear: both !important;
+    display: block !important;
+    width: 100% !important;
 }
 
 .main-menu-list {
@@ -397,39 +402,102 @@ input[type="checkbox"]:checked::after {
     line-height: 1 !important;
 }
 
-/* ── 6. SLEEK BENTO TABLE / DATA ROWS ───────────────────────── */
+/* ── 6. SEPARATED CARD-STYLE LIST ROWS WITH VISIBLE ACTIONS ─── */
 .units-table {
-    border: 1px solid var(--zod-border) !important;
-    border-radius: var(--zod-radius) !important;
-    overflow: hidden !important;
-    background: var(--zod-surface) !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
 }
 
 .units-table-header {
-    background: #141419 !important;
-    border-bottom: 1px solid var(--zod-border) !important;
+    background: #111116 !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: 10px !important;
     font-size: 11px !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
     color: var(--zod-text-muted) !important;
-    padding: 16px 24px !important;
+    padding: 14px 20px !important;
 }
 
 .units-table-row, .unit, .units {
-    background: var(--zod-surface) !important;
-    border-bottom: 1px solid var(--zod-border-subtle) !important;
-    padding: 18px 24px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: var(--zod-surface-card) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius) !important;
+    padding: 18px 22px !important;
+    margin-bottom: 8px !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
 }
 
 .units-table-row:hover, .unit:hover, .units:hover {
     background: var(--zod-surface-hover) !important;
-    box-shadow: inset 3px 0 0 var(--zod-primary), 0 4px 18px rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--zod-border-hover) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), inset 3px 0 0 var(--zod-primary) !important;
 }
 
-/* ── 7. STATUS INDICATORS ───────────────────────────────────── */
+/* ── 7. PERMANENTLY VISIBLE QUICK ACTION BADGES (NO HOVER HIDE) ─ */
+.units-table-row-actions,
+.data-controls,
+.actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.units-table-row-action {
+    display: inline-flex !important;
+    list-style: none !important;
+}
+
+.units-table-row-action-link,
+.units-table-row-action a {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius-sm) !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--zod-text) !important;
+    font-size: 13px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+}
+
+.units-table-row-action-link:hover,
+.units-table-row-action a:hover {
+    background: var(--zod-primary) !important;
+    border-color: var(--zod-primary) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.08) !important;
+    box-shadow: 0 4px 12px var(--zod-primary-glow) !important;
+}
+
+/* Distinct Action Colors on Hover */
+.units-table-row-action a:hover .icon-maroon,
+.units-table-row-action a:hover .icon-lightblue,
+.units-table-row-action a:hover .icon-yellow,
+.units-table-row-action a:hover .icon-blue,
+.units-table-row-action a:hover .icon-green,
+.units-table-row-action a:hover .icon-red {
+    color: #ffffff !important;
+}
+
+/* ── 8. STATUS BADGES ───────────────────────────────────────── */
 .icon-green, .fas.fa-check, .fa-check-circle {
     color: var(--zod-green) !important;
     filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.45));
@@ -440,7 +508,7 @@ input[type="checkbox"]:checked::after {
     opacity: 0.5;
 }
 
-/* ── 8. FOOTER ──────────────────────────────────────────────── */
+/* ── 9. FOOTER ──────────────────────────────────────────────── */
 .app-footer {
     border-top: 1px solid var(--zod-border) !important;
     color: var(--zod-text-subtle) !important;
