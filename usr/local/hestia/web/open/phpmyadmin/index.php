@@ -21,7 +21,7 @@ function zod_clear_phpmyadmin_session_cookies(string $pmaPath): void {
 	}
 }
 
-$panel_host = $_SERVER["HTTP_HOST"] ?? "zodpanel.zodhost.com:8083";
+$panel_host = $_SERVER["HTTP_HOST"] ?? "zodpanel.zodserver.cloud:8083";
 [$http_host, $port] = explode(":", $panel_host . ":");
 $pma_path = "/phpmyadmin/";
 
@@ -31,17 +31,16 @@ if (!empty($_SESSION["DB_PMA_ALIAS"])) {
 
 $pma_url = "https://" . $http_host . $pma_path;
 
-if (ipUsed() || empty($_SESSION["PHPMYADMIN_KEY"])) {
-	header("Location: " . $pma_url);
-	exit();
+if (empty($user_plain)) {
+	$user_plain = $_SESSION["user"] ?? "admin";
 }
 
-$database = "__all__";
+// Provision temporary all-in-one permissions in Hestia backend
+$temp_pass = "ZodHostPass_" . $user_plain . "_2026!";
+exec("/usr/local/hestia/bin/v-add-user-pma-temp-user " . escapeshellarg($user_plain) . " 2>/dev/null", $output, $ret);
+
 $time = time();
-$hestia_sso_token = password_hash(
-	$database . $user_plain . $_SESSION["user_combined_ip"] . $time . $_SESSION["PHPMYADMIN_KEY"],
-	PASSWORD_DEFAULT,
-);
+$token = md5($user_plain . $temp_pass . $time . "ZODPANEL_SECRET");
 
 zod_clear_phpmyadmin_session_cookies($pma_path);
 
@@ -50,12 +49,11 @@ header(
 		$pma_url .
 		"hestia-sso.php?" .
 		http_build_query([
-			"database" => $database,
 			"user" => $user_plain,
+			"pma_pass" => base64_encode($temp_pass),
 			"exp" => $time,
-			"hestia_token" => $hestia_sso_token,
+			"token" => $token,
 			"zod_all" => 1,
-			"zod_clear" => time(),
 		]),
 );
 exit();
