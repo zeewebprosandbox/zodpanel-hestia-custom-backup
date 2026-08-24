@@ -6,23 +6,15 @@ user="$1"
 pma_user="pma_${user}"
 pma_pass="ZodHostPass_${user}_2026!"
 
-# MySQL Grant
-mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
-CREATE USER IF NOT EXISTS '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
-ALTER USER '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
-SQL
+MYSQL_CMD="mysql"
+command -v mariadb >/dev/null 2>&1 && MYSQL_CMD="mariadb"
+
+$MYSQL_CMD -uroot -e "CREATE USER IF NOT EXISTS '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}'; ALTER USER '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';" 2>/dev/null || true
 
 if [ "$user" = "admin" ] || [ "$user" = "root" ]; then
-mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
-GRANT ALL PRIVILEGES ON *.* TO '${pma_user}'@'localhost' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-SQL
+    $MYSQL_CMD -uroot -e "GRANT ALL PRIVILEGES ON *.* TO '${pma_user}'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null || true
 else
-mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
-GRANT ALL PRIVILEGES ON \`${user}_%\`.* TO '${pma_user}'@'localhost';
-GRANT ALL PRIVILEGES ON \`${user}\`.* TO '${pma_user}'@'localhost';
-FLUSH PRIVILEGES;
-SQL
+    $MYSQL_CMD -uroot -e "GRANT ALL PRIVILEGES ON \`${user}_%\`.* TO '${pma_user}'@'localhost'; GRANT ALL PRIVILEGES ON \`${user}\`.* TO '${pma_user}'@'localhost'; FLUSH PRIVILEGES;" 2>/dev/null || true
 fi
 
 echo -n "$pma_pass"
