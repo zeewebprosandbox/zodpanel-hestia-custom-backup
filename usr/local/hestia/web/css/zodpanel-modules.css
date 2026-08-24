@@ -1,42 +1,37 @@
 /* ============================================================
-   ZodPanel 2.0 — State of the Art Cloud Control System
-   Ultra-Modern • Glassmorphism • Bento Cards • Switch Toggles
+   ZodPanel Cloud OS — Modern SaaS Design System
+   Sleek Obsidian Canvas • Linear/Vercel Aesthetic • Refined UX
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
     --zod-canvas: #09090b;
-    --zod-surface: #111114;
-    --zod-surface-hover: #17171c;
-    --zod-surface-soft: #1a1a22;
-    --zod-surface-card: rgba(18, 18, 23, 0.85);
+    --zod-surface: #111115;
+    --zod-surface-card: #16161b;
+    --zod-surface-hover: #1c1c23;
+    --zod-surface-soft: #181820;
     
-    --zod-border: rgba(255, 255, 255, 0.08);
-    --zod-border-subtle: rgba(255, 255, 255, 0.04);
+    --zod-border: rgba(255, 255, 255, 0.07);
     --zod-border-hover: rgba(99, 102, 241, 0.45);
+    --zod-border-subtle: rgba(255, 255, 255, 0.03);
     
-    --zod-text: #f4f4f5;
+    --zod-text: #f4f4f6;
     --zod-text-muted: #a1a1aa;
     --zod-text-subtle: #71717a;
     
     --zod-primary: #6366f1;
     --zod-primary-hover: #4f46e5;
-    --zod-primary-glow: rgba(99, 102, 241, 0.3);
+    --zod-primary-glow: rgba(99, 102, 241, 0.25);
     
     --zod-cyan: #06b6d4;
-    --zod-cyan-glow: rgba(6, 182, 212, 0.25);
     --zod-green: #10b981;
-    --zod-green-glow: rgba(16, 185, 129, 0.25);
     --zod-violet: #8b5cf6;
-    --zod-violet-glow: rgba(139, 92, 246, 0.25);
     --zod-orange: #f59e0b;
-    --zod-orange-glow: rgba(245, 158, 11, 0.25);
     --zod-red: #ef4444;
     
-    --zod-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --zod-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --zod-font-mono: 'JetBrains Mono', monospace;
-    --zod-radius-xs: 6px;
     --zod-radius-sm: 8px;
     --zod-radius: 12px;
     --zod-radius-lg: 16px;
@@ -51,12 +46,17 @@ body {
     letter-spacing: -0.01em;
 }
 
-/* ── Top Header & Glassmorphism ────────────────────────────── */
+/* ── Top Header / Brand ─────────────────────────────────────── */
 .app-header, .top-bar {
-    background: rgba(9, 9, 11, 0.88) !important;
-    backdrop-filter: blur(18px) !important;
-    -webkit-backdrop-filter: blur(18px) !important;
+    background: rgba(9, 9, 11, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
+    padding: 10px 0 !important;
+}
+
+.top-bar-logo img {
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
 }
 
 .top-bar-usage-item {
@@ -65,110 +65,69 @@ body {
     border-radius: var(--zod-radius-pill) !important;
     color: var(--zod-text-muted) !important;
     font-size: 12px !important;
-    font-weight: 500 !important;
-    padding: 5px 14px !important;
+    font-weight: 600 !important;
+    padding: 6px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
     transition: all 0.2s ease;
 }
 
 .top-bar-usage-item:hover {
     border-color: var(--zod-primary) !important;
-    color: var(--zod-text) !important;
+    color: #ffffff !important;
     background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* ── Navigation Menu (Horizontal Modern Tabs) ───────────────── */
+.top-menu {
+    border-bottom: 1px solid var(--zod-border) !important;
+    background: rgba(14, 14, 18, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    padding: 6px 0 !important;
 }
 
 .top-menu-item a {
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text-muted) !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     font-size: 13px !important;
-    padding: 8px 14px !important;
+    padding: 8px 18px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid transparent !important;
 }
 
 .top-menu-item a:hover,
 .top-menu-item.active a {
     background: rgba(99, 102, 241, 0.12) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
     color: #ffffff !important;
-    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.35) !important;
 }
 
-/* ── Hero Banner ────────────────────────────────────────────── */
-.zod-modules-hero {
-    align-items: center;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(17, 17, 20, 0.95) 60%), var(--zod-surface);
-    border: 1px solid var(--zod-border);
-    border-radius: var(--zod-radius-lg);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    display: flex;
-    gap: 20px;
-    justify-content: space-between;
-    margin: 20px 0 16px;
-    padding: 24px 28px;
-    backdrop-filter: blur(16px);
+/* ── Streamlined Navigation Stat Summaries ──────────────────── */
+.top-bar-stats, .l-unit-stats {
+    font-size: 11px !important;
+    color: var(--zod-text-subtle) !important;
+    font-weight: 500 !important;
 }
 
-.zod-modules-hero h2 {
-    color: #ffffff;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin: 4px 0 6px;
-}
-
-.zod-modules-hero p {
-    color: var(--zod-text-muted);
-    font-size: 13px;
-    line-height: 1.6;
-    margin: 0;
-}
-
-.zod-modules-eyebrow {
-    color: var(--zod-primary);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-/* ── Modern Toolbar & Search ────────────────────────────────── */
+/* ── Modern Toolbar / Action Controls ───────────────────────── */
 .toolbar {
     background: var(--zod-surface) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
-    padding: 10px 16px !important;
-    margin-bottom: 16px !important;
+    padding: 12px 18px !important;
+    margin: 18px 0 !important;
     backdrop-filter: blur(14px) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
-.form-control, .form-select, input[type="search"], input[type="text"], input[type="password"], input[type="email"], select, textarea {
-    background: var(--zod-surface-soft) !important;
-    border: 1px solid var(--zod-border) !important;
-    border-radius: var(--zod-radius-sm) !important;
-    color: var(--zod-text) !important;
-    font-family: var(--zod-font-sans) !important;
-    font-size: 13px !important;
-    padding: 8px 14px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.form-control:focus, .form-select:focus, input[type="search"]:focus, input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
-    border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 0 3px var(--zod-primary-glow) !important;
-    outline: none !important;
-}
-
-/* ── Modern Buttons ─────────────────────────────────────────── */
 .button, .btn, .zod-action-button {
     border-radius: var(--zod-radius-sm) !important;
     font-family: var(--zod-font-sans) !important;
     font-weight: 600 !important;
     font-size: 13px !important;
-    padding: 8px 16px !important;
+    padding: 8px 18px !important;
     min-height: 38px !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -176,16 +135,15 @@ body {
     gap: 8px !important;
     text-decoration: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-.button-secondary, .zod-action-button {
-    background: var(--zod-surface-soft) !important;
+.button-secondary {
+    background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     color: var(--zod-text) !important;
 }
 
-.button-secondary:hover, .zod-action-button:hover {
+.button-secondary:hover {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-border-hover) !important;
     color: #ffffff !important;
@@ -193,307 +151,126 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3) !important;
 }
 
-.button-primary, .zod-action-primary {
-    background: linear-gradient(135deg, var(--zod-primary) 0%, var(--zod-primary-hover) 100%) !important;
-    border: 1px solid var(--zod-primary) !important;
+.button-primary, .zod-action-primary, .js-button-create {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    border: 1px solid #6366f1 !important;
     color: #ffffff !important;
     box-shadow: 0 4px 14px var(--zod-primary-glow) !important;
 }
 
-.button-primary:hover, .zod-action-primary:hover {
+.button-primary:hover, .js-button-create:hover {
     box-shadow: 0 6px 22px rgba(99, 102, 241, 0.45) !important;
     background: linear-gradient(135deg, #7174f8 0%, #5b53f0 100%) !important;
     transform: translateY(-1px) !important;
 }
 
-/* ── CREATIVE MODERN SWITCH TOGGLES (FOR CHECKBOXES) ────────── */
-input[type="checkbox"] {
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    appearance: none !important;
-    width: 38px !important;
-    min-width: 38px !important;
-    height: 20px !important;
-    background: #27272a !important;
-    border-radius: 20px !important;
-    position: relative !important;
-    cursor: pointer !important;
-    outline: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    vertical-align: middle !important;
-    display: inline-block !important;
-    margin: 0 !important;
+/* ── Modern Form Controls & Search ──────────────────────────── */
+.form-control, .form-select, input[type="search"], input[type="text"], input[type="password"], input[type="email"], select, textarea {
+    background: var(--zod-surface-card) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius-sm) !important;
+    color: var(--zod-text) !important;
+    font-family: var(--zod-font-sans) !important;
+    font-size: 13px !important;
+    padding: 8px 14px !important;
+    transition: all 0.2s ease !important;
 }
 
-input[type="checkbox"]::after {
-    content: '' !important;
-    position: absolute !important;
-    top: 2px !important;
-    left: 2px !important;
-    width: 14px !important;
-    height: 14px !important;
-    background: #e4e4e7 !important;
-    border-radius: 50% !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+.form-control:focus, .form-select:focus, input[type="search"]:focus, input[type="text"]:focus {
+    border-color: var(--zod-primary) !important;
+    box-shadow: 0 0 0 3px var(--zod-primary-glow) !important;
+    outline: none !important;
+}
+
+/* ── Refined Table Row Checkboxes (Clean & Compact) ─────────── */
+input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    background: var(--zod-surface-card) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
 }
 
 input[type="checkbox"]:hover {
-    border-color: rgba(99, 102, 241, 0.4) !important;
+    border-color: var(--zod-primary) !important;
+    background: var(--zod-surface-hover) !important;
 }
 
 input[type="checkbox"]:checked {
-    background: linear-gradient(135deg, var(--zod-primary) 0%, var(--zod-primary-hover) 100%) !important;
+    background: var(--zod-primary) !important;
     border-color: var(--zod-primary) !important;
     box-shadow: 0 0 10px var(--zod-primary-glow) !important;
 }
 
 input[type="checkbox"]:checked::after {
-    transform: translateX(18px) !important;
-    background: #ffffff !important;
+    content: '✓' !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    line-height: 1 !important;
 }
 
-/* ── RECTANGULAR BENTO QUICK CARDS ──────────────────────────── */
-.zod-modules-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 16px;
-    margin-top: 20px;
-}
-
-.zod-module-card {
-    background: var(--zod-surface-card) !important;
-    border: 1px solid var(--zod-border) !important;
-    border-radius: var(--zod-radius) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 18px 22px !important;
-    min-height: 84px !important;
-    text-decoration: none !important;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.zod-module-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
-    height: 100%;
-    background: var(--zod-primary);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-
-.zod-module-card:hover {
-    border-color: var(--zod-border-hover) !important;
-    background: var(--zod-surface-hover) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2) !important;
-    text-decoration: none !important;
-}
-
-.zod-module-card:hover::before {
-    opacity: 1;
-}
-
-.zod-module-card-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: var(--zod-radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 18px;
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--zod-primary);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    margin-right: 16px;
-    transition: all 0.25s ease;
-}
-
-.zod-module-card:hover .zod-module-card-icon {
-    background: var(--zod-primary);
-    color: #ffffff;
-    box-shadow: 0 4px 12px var(--zod-primary-glow);
-    transform: scale(1.05);
-}
-
-.zod-module-card-body {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.zod-module-card-group {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--zod-primary);
-    margin-bottom: 2px;
-}
-
-.zod-module-card-body strong {
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.zod-module-card-body small {
-    color: var(--zod-text-muted);
-    font-size: 12px;
-    line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
-}
-
-.zod-module-card-body em {
-    color: var(--zod-text-subtle);
-    font-size: 11px;
-    font-style: normal;
-    margin-top: 3px;
-}
-
-.zod-module-card-arrow {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--zod-radius-sm);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--zod-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--zod-text-muted);
-    font-size: 12px;
-    margin-left: 14px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.zod-module-card:hover .zod-module-card-arrow {
-    background: var(--zod-primary);
-    border-color: var(--zod-primary);
-    color: #ffffff;
-    transform: translateX(3px);
-    box-shadow: 0 2px 8px var(--zod-primary-glow);
-}
-
-/* ── Distinct Tone Glows ────────────────────────────────────── */
-.zod-module-databases .zod-module-card-icon {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--zod-green);
-    border-color: rgba(16, 185, 129, 0.2);
-}
-.zod-module-databases:hover {
-    border-color: rgba(16, 185, 129, 0.45) !important;
-}
-.zod-module-databases:hover::before {
-    background: var(--zod-green);
-}
-.zod-module-databases:hover .zod-module-card-icon,
-.zod-module-databases:hover .zod-module-card-arrow {
-    background: var(--zod-green);
-    border-color: var(--zod-green);
-}
-
-.zod-module-mail .zod-module-card-icon {
-    background: rgba(139, 92, 246, 0.1);
-    color: var(--zod-violet);
-    border-color: rgba(139, 92, 246, 0.2);
-}
-.zod-module-mail:hover {
-    border-color: rgba(139, 92, 246, 0.45) !important;
-}
-.zod-module-mail:hover::before {
-    background: var(--zod-violet);
-}
-.zod-module-mail:hover .zod-module-card-icon,
-.zod-module-mail:hover .zod-module-card-arrow {
-    background: var(--zod-violet);
-    border-color: var(--zod-violet);
-}
-
-.zod-module-dns .zod-module-card-icon {
-    background: rgba(6, 182, 212, 0.1);
-    color: var(--zod-cyan);
-    border-color: rgba(6, 182, 212, 0.2);
-}
-.zod-module-dns:hover {
-    border-color: rgba(6, 182, 212, 0.45) !important;
-}
-.zod-module-dns:hover::before {
-    background: var(--zod-cyan);
-}
-.zod-module-dns:hover .zod-module-card-icon,
-.zod-module-dns:hover .zod-module-card-arrow {
-    background: var(--zod-cyan);
-    border-color: var(--zod-cyan);
-}
-
-/* ── Modern Units List & Data Tables ────────────────────────── */
+/* ── High-End Units List & Table Cards ──────────────────────── */
 .units-table {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
     overflow: hidden !important;
     background: var(--zod-surface) !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
 .units-table-header {
-    background: var(--zod-surface-soft) !important;
+    background: #141419 !important;
     border-bottom: 1px solid var(--zod-border) !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.08em !important;
     color: var(--zod-text-muted) !important;
-    padding: 12px 18px !important;
+    padding: 14px 20px !important;
 }
 
-.unit, .units {
+.units-table-row, .unit, .units {
     background: var(--zod-surface) !important;
     border-bottom: 1px solid var(--zod-border-subtle) !important;
+    padding: 16px 20px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    padding: 14px 18px !important;
 }
 
-.unit:hover, .units:hover {
+.units-table-row:hover, .unit:hover, .units:hover {
     background: var(--zod-surface-hover) !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: inset 2px 0 0 var(--zod-primary) !important;
 }
 
-/* ── Custom Scrollbar ───────────────────────────────────────── */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* ── Status Indicators & Icons ──────────────────────────────── */
+.icon-green, .fas.fa-check, .fa-check-circle {
+    color: var(--zod-green) !important;
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
 }
-::-webkit-scrollbar-track {
-    background: var(--zod-canvas);
+
+.icon-red, .fas.fa-xmark, .fa-times-circle {
+    color: var(--zod-text-subtle) !important;
+    opacity: 0.7;
 }
-::-webkit-scrollbar-thumb {
-    background: var(--zod-surface-soft);
-    border-radius: 4px;
-    border: 1px solid var(--zod-border);
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--zod-text-subtle);
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.app-footer {
+    border-top: 1px solid var(--zod-border) !important;
+    color: var(--zod-text-subtle) !important;
+    font-size: 12px !important;
+    padding: 20px 0 !important;
 }

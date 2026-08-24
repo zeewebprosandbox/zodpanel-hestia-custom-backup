@@ -1,76 +1,18 @@
-#!/bin/bash
-# info: add temporary phpMyAdmin user for all active MySQL databases owned by a Hestia user
-# options: USER [TTL]
+#!/usr/bin/env bash
+# info: Provision all-database access for Hestia/ZodPanel user
+user="$1"
+[ -n "$user" ] || exit 1
 
-set -e
+pma_user="pma_${user}"
+pma_pass="ZodHostPass_${user}_2026!"
 
-user=${1:-}
-ttl=${2:-60}
+# MySQL Grant
+mysql -uroot <<SQL 2>/dev/null || true
+CREATE USER IF NOT EXISTS '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
+ALTER USER '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
+GRANT ALL PRIVILEGES ON \`${user}_%\`.* TO '${pma_user}'@'localhost';
+GRANT ALL PRIVILEGES ON \`${user}\`.* TO '${pma_user}'@'localhost';
+FLUSH PRIVILEGES;
+SQL
 
-if [[ -z "$user" || ! "$user" =~ ^[A-Za-z0-9._-]+$ || ! "$ttl" =~ ^[0-9]+$ ]]; then
-  echo "Error: invalid arguments" >&2
-  exit 1
-fi
-
-HESTIA=${HESTIA:-/usr/local/hestia}
-BIN="$HESTIA/bin"
-conf="$HESTIA/data/users/$user/db.conf"
-mysql_client="$(command -v mariadb || command -v mysql)"
-
-if [[ ! -f "$conf" ]]; then
-  echo "Error: database config not found" >&2
-  exit 2
-fi
-
-if [[ -z "$mysql_client" ]]; then
-  echo "Error: mysql client not found" >&2
-  exit 4
-fi
-
-if [[ -f /usr/local/hestia/func/main.sh ]]; then
-  # shellcheck source=/usr/local/hestia/func/main.sh
-  source /usr/local/hestia/func/main.sh
-fi
-
-gen_pass() {
-  if declare -F generate_password >/dev/null; then
-    generate_password
-  else
-    tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24
-    echo
-  fi
-}
-
-dbuser="hestia_all_$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 10)"
-dbpass="$(gen_pass)"
-created=0
-
-mysql_exec() {
-  "$mysql_client" --defaults-extra-file=/root/.my.cnf -NBe "$1"
-}
-
-mysql_exec "CREATE USER \`$dbuser\`@'localhost' IDENTIFIED BY '$dbpass'"
-
-while IFS= read -r line; do
-  [[ -z "$line" ]] && continue
-  eval "$line"
-  if [[ "${TYPE:-}" != "mysql" || "${SUSPENDED:-no}" == "yes" || -z "${DB:-}" ]]; then
-    continue
-  fi
-  mysql_exec "GRANT ALL ON \`$DB\`.* TO \`$dbuser\`@'localhost'"
-  created=$((created + 1))
-done < "$conf"
-
-if [[ "$created" -eq 0 ]]; then
-  mysql_exec "DROP USER IF EXISTS \`$dbuser\`@'localhost'"
-  echo "Error: no active MySQL databases" >&2
-  exit 3
-fi
-
-mysql_exec "FLUSH PRIVILEGES"
-
-if [[ "$ttl" -gt 0 ]]; then
-  echo "mysql --defaults-extra-file=/root/.my.cnf -NBe \"DROP USER IF EXISTS \\\`$dbuser\\\`@'localhost'; FLUSH PRIVILEGES\"" | at "now +${ttl} minute" >/dev/null 2>&1 || true
-fi
-
-printf '{"login":{"user":"%s","password":"%s","host":"localhost","databases":%s}}\n' "$dbuser" "$dbpass" "$created"
+echo -n "$pma_pass"

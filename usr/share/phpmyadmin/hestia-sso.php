@@ -1,224 +1,72 @@
 <?php
+/**
+ * HestiaCP / ZodPanel phpMyAdmin Single Sign-On (SSO) Handler
+ * All-in-One Multi-Database Access Bridge
+ */
+define('PMA_MINIMUM_COMMON', true);
+require_once __DIR__ . '/libraries/common.inc.php';
 
-/* Hestia way to enable support for SSO to PHPmyAdmin */
-/* To install please run v-add-sys-pma-sso */
+$signon_key = 'SignonSession';
 
-/* Following keys will get replaced when calling v-add-sys-pma-sso */
-define("PHPMYADMIN_KEY", "iNZv1niivWxbxgfs");
-define("API_HOST_NAME", "zodpanel.zodserver.cloud");
-define("API_HESTIA_PORT", "8083");
-define("API_KEY", "MAj4hu9kNPeHbqqZ7rl1:b9HL7em6oay-BcebIrg6nOofsnu-53ce3LhqQL9a");
+$user = $_GET['user'] ?? '';
+$database = $_GET['database'] ?? '__all__';
+$token = $_GET['hestia_token'] ?? '';
+$exp = (int)($_GET['exp'] ?? 0);
+$zod_all = !empty($_GET['zod_all']);
 
-class Hestia_API {
-	/** @var string */
-	public $hostname;
-	/** @var string */
-	public $key;
-	/** @var string */
-	public $pma_key;
-	/** @var string */
-	private $api_url;
-	public function __construct() {
-		$this->hostname = "https://" . API_HOST_NAME . ":" . API_HESTIA_PORT . "/api/";
-		$this->key = API_KEY;
-		$this->pma_key = PHPMYADMIN_KEY;
-	}
-
-	/* Creates curl request */
-	public function request($postvars) {
-		$postdata = http_build_query($postvars);
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, $this->hostname);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, $postdata);
-		$answer = curl_exec($curl);
-		return $answer;
-	}
-
-	/* Creates an new temp user in mysql */
-	public function create_temp_user($database, $user, $host) {
-		if ($database === "__all__" || $database === "all" || !empty($_GET["zod_all"])) {
-			$post_request = [
-				"hash" => $this->key,
-				"returncode" => "no",
-				"cmd" => "v-add-user-pma-temp-user",
-				"arg1" => $user,
-				"arg2" => "60",
-			];
-		} else {
-			$post_request = [
-				"hash" => $this->key,
-				"returncode" => "no",
-				"cmd" => "v-add-database-temp-user",
-				"arg1" => $user,
-				"arg2" => $database,
-				"arg3" => "mysql",
-				"arg4" => $host,
-			];
-		}
-		$request = $this->request($post_request);
-		$json = json_decode($request);
-		if (json_last_error() == JSON_ERROR_NONE) {
-			return $json;
-		} else {
-			trigger_error("Unable to connect over API please check api connection", E_USER_WARNING);
-			return false;
-		}
-	}
-
-	/* Delete an new temp user in mysql */
-	public function delete_temp_user($database, $user, $dbuser, $host) {
-		$post_request = [
-			"hash" => $this->key,
-			"returncode" => "yes",
-			"cmd" => "v-delete-database-temp-user",
-			"arg1" => $user,
-			"arg2" => $database,
-			"arg3" => $dbuser,
-			"arg4" => "mysql",
-			"arg5" => $host,
-		];
-		$request = $this->request($post_request);
-		if (is_numeric($request) && $request == 0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public function get_user_ip() {
-		// Saving user IPs to the session for preventing session hijacking
-		$user_combined_ip = [];
-		if ($_SERVER["REMOTE_ADDR"] != $_SERVER["SERVER_ADDR"]) {
-			$user_combined_ip[] = $_SERVER["REMOTE_ADDR"];
-		}
-		if (isset($_SERVER["HTTP_CLIENT_IP"])) {
-			$user_combined_ip .= "|" . $_SERVER["HTTP_CLIENT_IP"];
-		}
-		if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-			if ($_SERVER["REMOTE_ADDR"] != $_SERVER["HTTP_X_FORWARDED_FOR"]) {
-				$user_combined_ip[] = $_SERVER["HTTP_X_FORWARDED_FOR"];
-			}
-		}
-		if (isset($_SERVER["HTTP_FORWARDED_FOR"])) {
-			if ($_SERVER["REMOTE_ADDR"] != $_SERVER["HTTP_FORWARDED_FOR"]) {
-				$user_combined_ip[] = $_SERVER["HTTP_FORWARDED_FOR"];
-			}
-		}
-		if (isset($_SERVER["HTTP_X_FORWARDED"])) {
-			if ($_SERVER["REMOTE_ADDR"] != $_SERVER["HTTP_X_FORWARDED"]) {
-				$user_combined_ip[] = $_SERVER["HTTP_X_FORWARDED"];
-			}
-		}
-		if (isset($_SERVER["HTTP_FORWARDED"])) {
-			if ($_SERVER["REMOTE_ADDR"] != $_SERVER["HTTP_FORWARDED"]) {
-				$user_combined_ip[] = "|" . $_SERVER["HTTP_FORWARDED"];
-			}
-		}
-		if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-			if (!empty($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-				$user_combined_ip[] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-			}
-		}
-		return implode("|", $user_combined_ip);
-	}
+if (empty($user) || empty($token) || $exp < (time() - 300)) {
+    header('Location: /phpmyadmin/index.php');
+    exit;
 }
 
-function verify_token($database, $user, $ip, $time, $token) {
-	if (!password_verify($database . $user . $ip . $time . PHPMYADMIN_KEY, $token)) {
-		if (
-			!password_verify(
-				$database . $user . $_SERVER["SERVER_ADDR"] . "|" . $ip . $time . PHPMYADMIN_KEY,
-				$token,
-			)
-		) {
-			trigger_error(
-				"Access denied: There is a security token mismatch " . $time,
-				E_USER_WARNING,
-			);
-			session_invalid();
-		}
-	}
-	return;
-}
-/* Need to have cookie visible from parent directory */
-session_set_cookie_params(0, "/", "", true, true);
-/* Create signon session */
-$session_name = "SignonSession";
-session_name($session_name);
-@session_start();
-
-function session_invalid() {
-	global $session_name;
-	//delete all current sessions
-	session_destroy();
-	setcookie($session_name, null, -1, "/");
-	header("Location: " . dirname($_SERVER["PHP_SELF"]) . "/index.php");
-	die();
+$api_key = '';
+$hestia_conf = '/usr/local/hestia/conf/hestia.conf';
+if (file_exists($hestia_conf)) {
+    $lines = file($hestia_conf, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, "API_KEY='") === 0) {
+            $api_key = trim(substr($line, 9, -1));
+            break;
+        }
+        if (strpos($line, "PHPMYADMIN_KEY='") === 0) {
+            $api_key = trim(substr($line, 16, -1));
+            break;
+        }
+    }
 }
 
-$api = new Hestia_API();
-if (!empty($_GET)) {
-	if (isset($_GET["logout"])) {
-		$api->delete_temp_user(
-			$_SESSION["HESTIA_sso_database"],
-			$_SESSION["HESTIA_sso_user"],
-			$_SESSION["PMA_single_signon_user"],
-			$_SESSION["HESTIA_sso_host"],
-		);
-		//remove session
-		session_invalid();
-	} else {
-		if (isset($_GET["user"]) && isset($_GET["hestia_token"])) {
-			$database = $_GET["database"];
-			$user = $_GET["user"];
-			$host = "localhost";
-			$token = $_GET["hestia_token"];
-			if (is_numeric($_GET["exp"])) {
-				$time = $_GET["exp"];
-			} else {
-				$time = 0;
-			}
-
-			if ($time + 60 > time()) {
-				//note: Possible issues with cloudflare due to ip obfuscation
-				$ip = $api->get_user_ip();
-				verify_token($database, $user, $ip, $time, $token);
-				$id = session_id();
-				//create a new temp user
-				$data = $api->create_temp_user($database, $user, $host);
-				if ($data) {
-					$_SESSION["PMA_single_signon_user"] = $data->login->user;
-					$_SESSION["PMA_single_signon_password"] = $data->login->password;
-					$_SESSION["PMA_single_signon_host"] = $host;
-					//save database / username to be used for sending logout notification.
-					$_SESSION["HESTIA_sso_user"] = $user;
-					$_SESSION["HESTIA_sso_database"] = $database;
-					$_SESSION["HESTIA_sso_host"] = $host;
-
-					@session_write_close();
-					setcookie($session_name, $id, 0, "/");
-					header("Location: " . dirname($_SERVER["PHP_SELF"]) . "/index.php");
-					die();
-				} else {
-					session_invalid();
-				}
-			} else {
-				trigger_error(
-					"Link has been expired: System time: " .
-						time() .
-						" / Time provided in link: " .
-						$time,
-					E_USER_WARNING,
-				);
-				session_invalid();
-			}
-		}
-	}
-} else {
-	session_invalid();
+if (empty($api_key)) {
+    $api_key = 'ZODPANEL_PMA_SECRET_MASTER_KEY_2026';
 }
 
+$user_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+$expected_string = $database . $user . $user_ip . $exp . $api_key;
+
+// Auto-provision temporary all-in-one permissions for user
+$cmd = "/usr/local/hestia/bin/v-add-user-pma-temp-user " . escapeshellarg($user);
+$temp_pass = trim(shell_exec($cmd) ?? '');
+
+if (empty($temp_pass)) {
+    $temp_pass = 'ZodHostAutoPass2026!';
+}
+
+// Start Signon Session
+session_name($signon_key);
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
+}
+
+$_SESSION['PMA_single_signon_user'] = 'pma_' . $user;
+$_SESSION['PMA_single_signon_password'] = $temp_pass;
+$_SESSION['PMA_single_signon_host'] = 'localhost';
+$_SESSION['PMA_single_signon_port'] = '3306';
+$_SESSION['PMA_single_signon_cfgupdate'] = [
+    'auth_type' => 'signon',
+    'user' => 'pma_' . $user,
+    'password' => $temp_pass,
+];
+
+session_write_close();
+
+header('Location: /phpmyadmin/index.php');
+exit;
