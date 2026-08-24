@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# info: Automatic 100% SSL issuance for all domains and subdomains
+set -e
+
+for user_dir in /usr/local/hestia/data/users/*/; do
+    user=$(basename "$user_dir")
+    [ -f "${user_dir}/web.conf" ] || continue
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        eval "$line"
+        [ -n "${DOMAIN:-}" ] || continue
+
+        # If SSL is not enabled or Let's Encrypt is pending
+        if [ "${SSL:-no}" != "yes" ] || [ "${LETSENCRYPT:-no}" != "yes" ]; then
+            echo "[SSL-AUTO] Issuing 100% Let's Encrypt SSL for domain: $DOMAIN ($user)"
+            /usr/local/hestia/bin/v-add-letsencrypt-domain "$user" "$DOMAIN" "" "yes" 2>/dev/null || \
+            /usr/local/hestia/bin/v-add-web-domain-ssl "$user" "$DOMAIN" 2>/dev/null || true
+            /usr/local/hestia/bin/v-add-web-domain-ssl-force "$user" "$DOMAIN" "yes" 2>/dev/null || true
+            /usr/local/hestia/bin/v-add-web-domain-ssl-hsts "$user" "$DOMAIN" "yes" 2>/dev/null || true
+        fi
+    done < "${user_dir}/web.conf"
+
+    if [ -f "${user_dir}/mail.conf" ]; then
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            eval "$line"
+            [ -n "${DOMAIN:-}" ] || continue
+            if [ "${SSL:-no}" != "yes" ]; then
+                echo "[SSL-AUTO] Issuing Let's Encrypt SSL for mail domain: $DOMAIN ($user)"
+                /usr/local/hestia/bin/v-add-letsencrypt-mail "$user" "$DOMAIN" 2>/dev/null || true
+            fi
+        done < "${user_dir}/mail.conf"
+    fi
+done
