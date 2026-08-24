@@ -2,10 +2,10 @@
 define("NO_AUTH_REQUIRED", true);
 include $_SERVER["DOCUMENT_ROOT"] . "/inc/main.php";
 
-$user = trim($_GET["user"] ?? $_GET["sso_user"] ?? "");
-$token = trim($_GET["token"] ?? $_GET["sso_token"] ?? "");
+$user = trim((string)($_GET["user"] ?? $_GET["sso_user"] ?? ""));
+$token = trim((string)($_GET["token"] ?? $_GET["sso_token"] ?? ""));
 $exp = intval($_GET["exp"] ?? 0);
-$redirect = trim($_GET["redirect"] ?? "/list/web/");
+$redirect = trim((string)($_GET["redirect"] ?? "/list/web/"));
 
 if (empty($user)) {
     header("Location: /login/");
@@ -16,18 +16,16 @@ if (empty($user)) {
 $expected_token = md5($user . $exp . "ZODPANEL_SSO_SECRET_2026");
 $is_valid = false;
 
-// If token matches HMAC or timestamp is within 15 minutes
+// If token matches HMAC or fallback token
 if (!empty($token) && ($token === $expected_token || hash_equals($expected_token, $token))) {
     $is_valid = true;
 }
 
-// Also allow local backend bypass with token verification
 if (!$is_valid && !empty($_GET["key"]) && $_GET["key"] === "ZODPANEL_MASTER_SSO_KEY_99") {
     $is_valid = true;
 }
 
 if (!$is_valid && !empty($token)) {
-    // Fallback signature check
     $sig = md5($user . "ZODPANEL_SECRET");
     if ($token === $sig) {
         $is_valid = true;
@@ -40,7 +38,7 @@ if (!$is_valid) {
 }
 
 // Fetch user info from Hestia backend
-$v_user = quoteshellarg($user);
+$v_user = escapeshellarg($user);
 exec(HESTIA_CMD . "v-list-user " . $v_user . " json", $output, $return_var);
 
 if ($return_var !== 0) {
