@@ -95,8 +95,8 @@ body {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
-    padding: 10px 0 !important;
-    min-height: 50px !important;
+    padding: 8px 0 !important;
+    min-height: 52px !important;
     display: block !important;
     width: 100% !important;
 }
@@ -106,13 +106,13 @@ body {
     align-items: center !important;
     justify-content: space-between !important;
     flex-wrap: wrap !important;
-    gap: 8px !important;
+    gap: 12px !important;
 }
 
 .top-bar-left {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 14px !important;
     flex-wrap: wrap !important;
 }
 
@@ -152,24 +152,43 @@ body {
 .top-bar-usage-inner {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
 }
 
 .top-bar-usage-item {
-    background: var(--zod-surface-soft) !important;
+    background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-pill) !important;
     color: var(--zod-text-muted) !important;
     font-size: 11px !important;
     font-weight: 600 !important;
-    padding: 3px 10px !important;
+    padding: 4px 12px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 6px !important;
     white-space: nowrap !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+.top-bar-usage-item:hover {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    background: var(--zod-surface-soft) !important;
+}
+
+.top-bar-usage-item i.fa-user,
+.top-bar-usage-item i.fa-user-tie,
+.top-bar-usage-item i.fa-binoculars {
+    color: #818cf8 !important;
+}
+
+.top-bar-usage-item i.fa-hard-drive {
+    color: #06b6d4 !important;
+}
+
+.top-bar-usage-item i.fa-right-left {
+    color: #10b981 !important;
 }
 
 .top-bar-right {
@@ -188,16 +207,16 @@ body {
 }
 
 .top-bar-menu-link {
-    background: var(--zod-surface-soft) !important;
+    background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text-muted) !important;
-    width: 30px !important;
-    height: 30px !important;
+    width: 32px !important;
+    height: 32px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     text-decoration: none !important;
     transition: all 0.2s ease !important;
 }
@@ -206,6 +225,13 @@ body {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-primary) !important;
     color: #ffffff !important;
+    box-shadow: 0 0 10px var(--zod-primary-glow) !important;
+}
+
+.top-bar-menu-link[href*="logout"]:hover {
+    border-color: #ef4444 !important;
+    color: #f87171 !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
 }
 
 /* ── 2. SCROLLABLE HORIZONTAL NAVIGATION TABS ───────────────── */
@@ -645,3 +671,4 @@ input[type="checkbox"]:checked::after {
     padding: 18px 0 !important;
     margin-top: 30px !important;
 }
+

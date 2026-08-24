@@ -7,12 +7,22 @@ pma_user="pma_${user}"
 pma_pass="ZodHostPass_${user}_2026!"
 
 # MySQL Grant
-mysql -uroot <<SQL 2>/dev/null || true
+mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
 CREATE USER IF NOT EXISTS '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
 ALTER USER '${pma_user}'@'localhost' IDENTIFIED BY '${pma_pass}';
+SQL
+
+if [ "$user" = "admin" ] || [ "$user" = "root" ]; then
+mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
+GRANT ALL PRIVILEGES ON *.* TO '${pma_user}'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+SQL
+else
+mysql -uroot <<SQL 2>/dev/null || mariadb -uroot <<SQL 2>/dev/null || true
 GRANT ALL PRIVILEGES ON \`${user}_%\`.* TO '${pma_user}'@'localhost';
 GRANT ALL PRIVILEGES ON \`${user}\`.* TO '${pma_user}'@'localhost';
 FLUSH PRIVILEGES;
 SQL
+fi
 
 echo -n "$pma_pass"
