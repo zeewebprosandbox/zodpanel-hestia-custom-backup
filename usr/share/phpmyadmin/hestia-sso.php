@@ -1,36 +1,35 @@
 <?php
-$signon_key = 'SignonSession';
+declare(strict_types=1);
 
-$user = $_GET['user'] ?? '';
-$pma_pass_b64 = $_GET['pma_pass'] ?? '';
-$pma_pass = !empty($pma_pass_b64) ? base64_decode($pma_pass_b64) : '';
+ini_set('session.use_cookies', '1');
+ini_set('session.use_only_cookies', '1');
+session_name('SignonSession');
+session_start();
 
-if (empty($pma_pass)) {
-    $pma_pass = 'ZodHostPass_' . $user . '_2026!';
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: /');
+    exit;
 }
 
-if (empty($user)) {
+$user = $_GET['user'] ?? '';
+$pass = isset($_GET['pma_pass']) ? base64_decode((string)$_GET['pma_pass']) : '';
+
+if (!empty($user) && !empty($pass)) {
+    $pma_user = 'pma_' . $user;
+    
+    $_SESSION['PMA_single_signon_user'] = $pma_user;
+    $_SESSION['PMA_single_signon_password'] = $pass;
+    $_SESSION['PMA_single_signon_host'] = 'localhost';
+    $_SESSION['PMA_single_signon_port'] = 3306;
+    $_SESSION['PMA_single_signon_controluser'] = '';
+    $_SESSION['PMA_single_signon_controlpass'] = '';
+    
+    session_write_close();
     header('Location: /phpmyadmin/index.php');
     exit;
 }
 
-// phpMyAdmin 5 session handling
-session_name($signon_key);
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    @session_start();
-}
-
-$_SESSION['PMA_single_signon_user'] = 'pma_' . $user;
-$_SESSION['PMA_single_signon_password'] = $pma_pass;
-$_SESSION['PMA_single_signon_host'] = 'localhost';
-$_SESSION['PMA_single_signon_port'] = 3306;
-$_SESSION['PMA_single_signon_cfgupdate'] = [
-    'auth_type' => 'signon',
-    'user' => 'pma_' . $user,
-    'password' => $pma_pass,
-];
-
-session_write_close();
-
+// Fallback if accessed without params
 header('Location: /phpmyadmin/index.php');
 exit;
