@@ -1,6 +1,6 @@
 /* ============================================================
-   ZodPanel Cloud OS — Modern SaaS Design System
-   Sleek Obsidian Canvas • Linear/Vercel Aesthetic • Refined UX
+   ZodPanel Cloud OS — Modern SaaS Design System (v2.6)
+   Ultra-Clean • Glassmorphism • Linear Aesthetic • Bento Rows
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -8,13 +8,13 @@
 :root {
     --zod-canvas: #09090b;
     --zod-surface: #111115;
-    --zod-surface-card: #16161b;
-    --zod-surface-hover: #1c1c23;
+    --zod-surface-card: #16161c;
+    --zod-surface-hover: #1c1c24;
     --zod-surface-soft: #181820;
     
-    --zod-border: rgba(255, 255, 255, 0.07);
+    --zod-border: rgba(255, 255, 255, 0.08);
     --zod-border-hover: rgba(99, 102, 241, 0.45);
-    --zod-border-subtle: rgba(255, 255, 255, 0.03);
+    --zod-border-subtle: rgba(255, 255, 255, 0.04);
     
     --zod-text: #f4f4f6;
     --zod-text-muted: #a1a1aa;
@@ -22,7 +22,7 @@
     
     --zod-primary: #6366f1;
     --zod-primary-hover: #4f46e5;
-    --zod-primary-glow: rgba(99, 102, 241, 0.25);
+    --zod-primary-glow: rgba(99, 102, 241, 0.35);
     
     --zod-cyan: #06b6d4;
     --zod-green: #10b981;
@@ -48,15 +48,17 @@ body {
 
 /* ── Top Header / Brand ─────────────────────────────────────── */
 .app-header, .top-bar {
-    background: rgba(9, 9, 11, 0.9) !important;
+    background: rgba(9, 9, 11, 0.92) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
-    padding: 10px 0 !important;
+    padding: 8px 0 !important;
 }
 
-.top-bar-logo img {
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+.top-bar-logo {
+    display: inline-flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
 }
 
 .top-bar-usage-item {
@@ -66,49 +68,119 @@ body {
     color: var(--zod-text-muted) !important;
     font-size: 12px !important;
     font-weight: 600 !important;
-    padding: 6px 16px !important;
+    padding: 5px 14px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     transition: all 0.2s ease;
 }
 
 .top-bar-usage-item:hover {
     border-color: var(--zod-primary) !important;
     color: #ffffff !important;
-    background: rgba(99, 102, 241, 0.08) !important;
+    background: rgba(99, 102, 241, 0.1) !important;
 }
 
-/* ── Navigation Menu (Horizontal Modern Tabs) ───────────────── */
-.top-menu {
-    border-bottom: 1px solid var(--zod-border) !important;
-    background: rgba(14, 14, 18, 0.6) !important;
-    backdrop-filter: blur(12px) !important;
-    padding: 6px 0 !important;
-}
-
-.top-menu-item a {
+.top-bar-menu-link {
+    background: var(--zod-surface-soft) !important;
+    border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text-muted) !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    padding: 8px 18px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border: 1px solid transparent !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
 }
 
-.top-menu-item a:hover,
-.top-menu-item.active a {
-    background: rgba(99, 102, 241, 0.12) !important;
-    border-color: rgba(99, 102, 241, 0.3) !important;
+.top-bar-menu-link:hover, .top-bar-menu-link.active {
+    background: var(--zod-surface-hover) !important;
+    border-color: var(--zod-primary) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* ── Streamlined Modern Navigation Tabs ─────────────────────── */
+.main-menu {
+    background: rgba(14, 14, 18, 0.8) !important;
+    border-bottom: 1px solid var(--zod-border) !important;
+    backdrop-filter: blur(14px) !important;
+    padding: 10px 0 !important;
+}
+
+.main-menu-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.main-menu-item {
+    flex: 0 0 auto !important;
+}
+
+.main-menu-item-link {
+    background: var(--zod-surface-soft) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius-sm) !important;
+    padding: 8px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.main-menu-item-label {
+    color: var(--zod-text-muted) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.main-menu-item-label i {
+    font-size: 14px !important;
+    color: var(--zod-text-subtle) !important;
+    transition: color 0.2s ease;
+}
+
+/* Hide bulky vertical sub-lines in navbar */
+.main-menu-stats, .zod-progress-meter {
+    display: none !important;
+}
+
+/* Active & Hover States for Navigation Tabs */
+.main-menu-item-link:hover {
+    background: var(--zod-surface-hover) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.main-menu-item-link:hover .main-menu-item-label,
+.main-menu-item-link:hover .main-menu-item-label i {
     color: #ffffff !important;
 }
 
-/* ── Streamlined Navigation Stat Summaries ──────────────────── */
-.top-bar-stats, .l-unit-stats {
-    font-size: 11px !important;
-    color: var(--zod-text-subtle) !important;
-    font-weight: 500 !important;
+.main-menu-item-link.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
+    border-color: var(--zod-primary) !important;
+    box-shadow: 0 0 16px var(--zod-primary-glow), inset 0 0 0 1px rgba(99, 102, 241, 0.4) !important;
+}
+
+.main-menu-item-link.active .main-menu-item-label {
+    color: #ffffff !important;
+}
+
+.main-menu-item-link.active .main-menu-item-label i {
+    color: #818cf8 !important;
 }
 
 /* ── Modern Toolbar / Action Controls ───────────────────────── */
@@ -117,7 +189,7 @@ body {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
     padding: 12px 18px !important;
-    margin: 18px 0 !important;
+    margin: 20px 0 16px !important;
     backdrop-filter: blur(14px) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
@@ -159,7 +231,7 @@ body {
 }
 
 .button-primary:hover, .js-button-create:hover {
-    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.45) !important;
+    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.5) !important;
     background: linear-gradient(135deg, #7174f8 0%, #5b53f0 100%) !important;
     transform: translateY(-1px) !important;
 }
@@ -182,15 +254,15 @@ body {
     outline: none !important;
 }
 
-/* ── Refined Table Row Checkboxes (Clean & Compact) ─────────── */
+/* ── Modern Checkboxes ──────────────────────────────────────── */
 input[type="checkbox"] {
     -webkit-appearance: none !important;
     appearance: none !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 18px !important;
+    height: 18px !important;
     background: var(--zod-surface-card) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 6px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 5px !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -209,13 +281,13 @@ input[type="checkbox"]:hover {
 input[type="checkbox"]:checked {
     background: var(--zod-primary) !important;
     border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 10px var(--zod-primary-glow) !important;
+    box-shadow: 0 0 8px var(--zod-primary-glow) !important;
 }
 
 input[type="checkbox"]:checked::after {
     content: '✓' !important;
     color: #ffffff !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 900 !important;
     position: absolute !important;
     top: 50% !important;
@@ -224,7 +296,7 @@ input[type="checkbox"]:checked::after {
     line-height: 1 !important;
 }
 
-/* ── High-End Units List & Table Cards ──────────────────────── */
+/* ── Ultra-Sleek Units Table / Row Cards ────────────────────── */
 .units-table {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
@@ -253,18 +325,18 @@ input[type="checkbox"]:checked::after {
 
 .units-table-row:hover, .unit:hover, .units:hover {
     background: var(--zod-surface-hover) !important;
-    box-shadow: inset 2px 0 0 var(--zod-primary) !important;
+    box-shadow: inset 3px 0 0 var(--zod-primary), 0 4px 18px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* ── Status Indicators & Icons ──────────────────────────────── */
+/* ── Status Indicators ──────────────────────────────────────── */
 .icon-green, .fas.fa-check, .fa-check-circle {
     color: var(--zod-green) !important;
-    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.45));
 }
 
 .icon-red, .fas.fa-xmark, .fa-times-circle {
     color: var(--zod-text-subtle) !important;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 /* ── Footer ─────────────────────────────────────────────────── */
