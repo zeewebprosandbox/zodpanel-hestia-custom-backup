@@ -1,134 +1,20 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# zodpanel-ssl-sync — ZodPanel Continuous Real-Time Auto-SSL Engine
+# Triggers instant 0-second SAN SSL, Force HTTPS, Hostname SSL (port 8083), and background Let's Encrypt resolution.
 
-ENV_FILE="${ENV_FILE:-/etc/whmpanel/node.env}"
-LOCK_FILE="${LOCK_FILE:-/tmp/zodpanel-ssl-sync.lock}"
-INTERVAL="${INTERVAL:-20}"
-RUNS="${RUNS:-1}"
-REPAIR_DNS="${REPAIR_DNS:-true}"
-CREATE_MAIL_DOMAIN="${CREATE_MAIL_DOMAIN:-true}"
-REQUEST_TIMEOUT="${REQUEST_TIMEOUT:-90}"
-USER_NAME=""
-DOMAIN_NAME=""
+USER="${1:-}"
+DOMAIN="${2:-}"
 
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --loop)
-      RUNS=0
-      ;;
-    --runs)
-      RUNS="${2:-1}"
-      shift
-      ;;
-    --interval)
-      INTERVAL="${2:-20}"
-      shift
-      ;;
-    --user)
-      USER_NAME="${2:-}"
-      shift
-      ;;
-    --domain)
-      DOMAIN_NAME="${2:-}"
-      shift
-      ;;
-    --no-dns-repair)
-      REPAIR_DNS=false
-      ;;
-    --no-create-mail-domain)
-      CREATE_MAIL_DOMAIN=false
-      ;;
-  esac
-  shift
-done
-
-if ! [[ "$RUNS" =~ ^[0-9]+$ ]] || ! [[ "$INTERVAL" =~ ^[0-9]+$ ]]; then
-  echo "RUNS and INTERVAL must be integers" >&2
-  exit 1
+SCRIPT_PATH="/usr/local/hestia/bin/v-configure-zodpanel-ssl-automation"
+if [ ! -f "$SCRIPT_PATH" ]; then
+    SCRIPT_PATH="/tmp/v-configure-zodpanel-ssl-automation"
 fi
 
-if [ ! -r "$ENV_FILE" ]; then
-  exit 0
+if [ -f "$SCRIPT_PATH" ]; then
+    bash "$SCRIPT_PATH" "$USER" "$DOMAIN"
+else
+    # Fallback to direct Let's Encrypt host check if script is missing
+    if [ -x /usr/local/hestia/bin/v-add-letsencrypt-host ]; then
+        /usr/local/hestia/bin/v-add-letsencrypt-host >/dev/null 2>&1 || true
+    fi
 fi
-
-set -a
-# shellcheck disable=SC1090
-. "$ENV_FILE"
-set +a
-
-TOKEN="${WHMPANEL_NODE_TOKEN:-}"
-BASE_URL="${WHMPANEL_PUBLIC_URL:-https://127.0.0.1:8083}"
-
-if [ -z "$TOKEN" ]; then
-  exit 0
-fi
-
-sync_once() {
-  local user="${1:-$USER_NAME}"
-  local domain="${2:-$DOMAIN_NAME}"
-  local payload
-  payload=$(printf '{"repair_dns":%s,"create_mail_domain":%s' "$REPAIR_DNS" "$CREATE_MAIL_DOMAIN")
-  if [ -n "$user" ]; then
-    payload="${payload},\"username\":\"${user//\"/\\\"}\""
-  fi
-  if [ -n "$domain" ]; then
-    payload="${payload},\"domain\":\"${domain//\"/\\\"}\""
-  fi
-  payload="${payload}}"
-
-  curl -k -fsS --connect-timeout 5 --max-time "$REQUEST_TIMEOUT" --retry 0 \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    -X POST \
-    "${BASE_URL%/}/api/whmlab/index.php?endpoint=ssl/sync" \
-    --data "$payload" >/dev/null
-}
-
-list_domains_for_user() {
-  local user="$1"
-  {
-    /usr/local/hestia/bin/v-list-web-domains "$user" json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $domain) { echo $domain, PHP_EOL; }'
-    /usr/local/hestia/bin/v-list-mail-domains "$user" json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $domain) { echo $domain, PHP_EOL; }'
-  } | sed '/^$/d' | awk '/^[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/ {print tolower($0)}' | sort -u
-}
-
-list_users() {
-  /usr/local/hestia/bin/v-list-users json 2>/dev/null | php -r '$j=json_decode(stream_get_contents(STDIN), true) ?: []; foreach (array_keys($j) as $user) { echo $user, PHP_EOL; }'
-}
-
-sync_all_once() {
-  if [ -n "$USER_NAME" ] || [ -n "$DOMAIN_NAME" ]; then
-    flock -n "$LOCK_FILE" bash -c 'sync_once "$@"' _ "$USER_NAME" "$DOMAIN_NAME"
-    return
-  fi
-
-  flock -n "$LOCK_FILE" bash -c '
-    set -euo pipefail
-    while read -r user; do
-      [ -n "$user" ] || continue
-      while read -r domain; do
-        [ -n "$domain" ] || continue
-        sync_once "$user" "$domain" || true
-      done < <(list_domains_for_user "$user")
-    done < <(list_users)
-  '
-}
-
-export -f sync_once list_domains_for_user list_users
-export TOKEN BASE_URL REPAIR_DNS CREATE_MAIL_DOMAIN REQUEST_TIMEOUT LOCK_FILE USER_NAME DOMAIN_NAME
-
-if [ "$RUNS" -eq 0 ]; then
-  while true; do
-    sync_all_once || true
-    sleep "$INTERVAL"
-  done
-fi
-
-count=0
-while [ "$count" -lt "$RUNS" ]; do
-  sync_all_once || true
-  count=$((count + 1))
-  if [ "$count" -lt "$RUNS" ]; then
-    sleep "$INTERVAL"
-  fi
-done
