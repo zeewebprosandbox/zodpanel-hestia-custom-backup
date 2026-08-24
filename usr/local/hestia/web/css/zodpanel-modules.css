@@ -1,23 +1,26 @@
 /* ============================================================
-   ZodPanel — Industry-Grade Sleek Dark Interface Design System
-   Linear meets Vercel meets Stripe Aesthetic
+   ZodPanel — Ultra-Modern Cloud Operating Interface
+   Refined Dark Mode • Glassmorphism • Micro-Interactions
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
     --zod-canvas: #09090b;
     --zod-surface: #121215;
     --zod-surface-hover: #18181b;
     --zod-surface-soft: #1c1c21;
+    --zod-surface-card: rgba(24, 24, 27, 0.7);
     --zod-border: rgba(255, 255, 255, 0.08);
-    --zod-border-hover: rgba(99, 102, 241, 0.35);
+    --zod-border-hover: rgba(99, 102, 241, 0.4);
     
     --zod-text: #f4f4f5;
     --zod-text-muted: #a1a1aa;
     --zod-text-subtle: #71717a;
     
-    --zod-blue: #6366f1;
+    --zod-primary: #6366f1;
+    --zod-primary-hover: #4f46e5;
+    --zod-primary-glow: rgba(99, 102, 241, 0.25);
     --zod-cyan: #06b6d4;
     --zod-green: #10b981;
     --zod-violet: #8b5cf6;
@@ -26,20 +29,63 @@
     
     --zod-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --zod-font-mono: 'JetBrains Mono', monospace;
+    --zod-radius: 10px;
+    --zod-radius-sm: 6px;
+    --zod-radius-lg: 14px;
 }
 
-.zod-modules-page {
-    font-family: var(--zod-font-sans);
-    color: var(--zod-text);
-    padding-bottom: 32px;
+body {
+    background-color: var(--zod-canvas) !important;
+    color: var(--zod-text) !important;
+    font-family: var(--zod-font-sans) !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Top Header & Glassmorphism ────────────────────────────── */
+.app-header, .top-bar {
+    background: rgba(9, 9, 11, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid var(--zod-border) !important;
+}
+
+.top-bar-usage-item {
+    background: var(--zod-surface-soft) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: 20px !important;
+    color: var(--zod-text-muted) !important;
+    font-size: 12px !important;
+    padding: 4px 12px !important;
+    transition: all 0.2s ease;
+}
+
+.top-bar-usage-item:hover {
+    border-color: var(--zod-primary) !important;
+    color: var(--zod-text) !important;
+}
+
+/* ── Navigation Menu & Active Indicators ────────────────────── */
+.top-menu-item a {
+    border-radius: var(--zod-radius-sm) !important;
+    color: var(--zod-text-muted) !important;
+    font-weight: 500 !important;
+    padding: 8px 14px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.top-menu-item a:hover,
+.top-menu-item.active a {
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.3) !important;
 }
 
 /* ── Hero Banner ────────────────────────────────────────────── */
 .zod-modules-hero {
     align-items: center;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(18, 18, 21, 0.95) 60%), var(--zod-surface);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(18, 18, 21, 0.95) 60%), var(--zod-surface);
     border: 1px solid var(--zod-border);
-    border-radius: 14px;
+    border-radius: var(--zod-radius-lg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     display: flex;
     gap: 20px;
@@ -47,10 +93,6 @@
     margin: 20px 0 16px;
     padding: 24px 28px;
     backdrop-filter: blur(16px);
-}
-
-.zod-modules-hero-main {
-    min-width: 0;
 }
 
 .zod-modules-hero h2 {
@@ -70,7 +112,7 @@
 }
 
 .zod-modules-eyebrow {
-    color: var(--zod-blue);
+    color: var(--zod-primary);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -80,18 +122,12 @@
     text-transform: uppercase;
 }
 
-.zod-modules-hero-actions {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 10px;
-}
-
-/* ── Sleek Component Buttons ────────────────────────────────── */
+/* ── Sleek Action Buttons ───────────────────────────────────── */
 .zod-action-button {
     align-items: center;
     background: var(--zod-surface-soft);
     border: 1px solid var(--zod-border);
-    border-radius: 8px;
+    border-radius: var(--zod-radius-sm);
     color: var(--zod-text);
     display: inline-flex;
     font-size: 13px;
@@ -114,512 +150,79 @@
 }
 
 .zod-action-primary {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    border-color: #6366f1;
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    background: linear-gradient(135deg, var(--zod-primary) 0%, var(--zod-primary-hover) 100%);
+    border-color: var(--zod-primary);
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px var(--zod-primary-glow);
 }
 
 .zod-action-primary:hover {
-    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5);
-    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+    background: linear-gradient(135deg, #7174f8 0%, #5b53f0 100%);
+}
+
+/* ── Clean Unit & Data Cards ────────────────────────────────── */
+.units, .unit {
+    background: var(--zod-surface) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    margin-bottom: 14px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.units:hover, .unit:hover {
+    border-color: var(--zod-border-hover) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
     transform: translateY(-1px);
 }
 
-/* ── Sleek Metric Cards ─────────────────────────────────────── */
-.zod-modules-metrics {
-    display: grid;
-    gap: 14px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: 20px;
-}
-
-.zod-metric {
-    align-items: center;
-    background: var(--zod-surface);
-    border: 1px solid var(--zod-border);
-    border-radius: 12px;
-    display: flex;
-    gap: 14px;
-    min-height: 80px;
-    padding: 16px 18px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.zod-metric:hover {
-    border-color: var(--zod-border-hover);
-    background: var(--zod-surface-hover);
-    transform: translateY(-1px);
-}
-
-.zod-metric-icon,
-.zod-module-card-icon {
-    align-items: center;
-    border-radius: 10px;
-    display: inline-flex;
-    flex: 0 0 auto;
-    height: 44px;
-    justify-content: center;
-    width: 44px;
-}
-
-.zod-metric-body {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-}
-
-.zod-metric-body span {
-    color: var(--zod-text-muted);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.zod-metric-body strong {
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 800;
-    font-family: var(--zod-font-mono);
-}
-
-.zod-tone-blue .zod-metric-icon { background: rgba(99, 102, 241, 0.14); color: var(--zod-blue); }
-.zod-tone-green .zod-metric-icon { background: rgba(16, 185, 129, 0.14); color: var(--zod-green); }
-.zod-tone-violet .zod-metric-icon { background: rgba(139, 92, 246, 0.14); color: var(--zod-violet); }
-.zod-tone-orange .zod-metric-icon { background: rgba(245, 158, 11, 0.14); color: var(--zod-orange); }
-
-/* ── Module Cards Grid ─────────────────────────────────────── */
-.zod-modules-grid {
-    display: grid;
-    gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    margin-bottom: 28px;
-}
-
-.zod-module-card {
-    align-items: flex-start;
-    background: var(--zod-surface);
-    border: 1px solid var(--zod-border);
-    border-radius: 12px;
-    color: inherit;
-    display: grid;
-    gap: 14px;
-    grid-template-columns: 44px minmax(0, 1fr) 28px;
-    min-height: 152px;
-    padding: 18px;
-    position: relative;
-    text-decoration: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.zod-module-card:hover {
-    border-color: var(--zod-border-hover);
-    background: var(--zod-surface-hover);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-    text-decoration: none;
-    transform: translateY(-2px);
-}
-
-.zod-module-card-icon {
-    background: rgba(99, 102, 241, 0.12);
-    color: var(--zod-blue);
-}
-
-.zod-module-webmail .zod-module-card-icon,
-.zod-module-auto_dns .zod-module-card-icon,
-.zod-module-cron .zod-module-card-icon {
-    background: rgba(16, 185, 129, 0.14);
-    color: var(--zod-green);
-}
-
-.zod-module-databases .zod-module-card-icon,
-.zod-module-phpmyadmin .zod-module-card-icon,
-.zod-module-php_selector .zod-module-card-icon,
-.zod-module-python .zod-module-card-icon {
-    background: rgba(139, 92, 246, 0.14);
-    color: var(--zod-violet);
-}
-
-.zod-module-backups .zod-module-card-icon,
-.zod-module-composer .zod-module-card-icon,
-.zod-module-logs .zod-module-card-icon,
-.zod-module-stats .zod-module-card-icon {
-    background: rgba(245, 158, 11, 0.14);
-    color: var(--zod-orange);
-}
-
-.zod-module-terminal .zod-module-card-icon,
-.zod-module-auto_ssl .zod-module-card-icon,
-.zod-module-force_https .zod-module-card-icon {
-    background: rgba(239, 68, 68, 0.14);
-    color: var(--zod-red);
-}
-
-.zod-module-card-body {
-    display: grid;
-    gap: 6px;
-    min-width: 0;
-}
-
-.zod-module-card-group {
-    align-self: start;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--zod-border);
-    border-radius: 9999px;
-    color: var(--zod-text-muted);
-    display: inline-flex;
-    font-size: 10px;
-    font-weight: 800;
-    justify-self: start;
-    line-height: 1;
-    padding: 5px 9px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.zod-module-card-body strong {
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.25;
-}
-
-.zod-module-card-body small {
-    color: var(--zod-text-muted);
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.zod-module-card-body em {
-    color: var(--zod-blue);
-    font-style: normal;
-    font-weight: 700;
-    line-height: 1.3;
-}
-
-.zod-module-card-arrow {
-    align-items: center;
-    background: var(--zod-surface-soft);
-    border: 1px solid var(--zod-border);
-    border-radius: 8px;
-    color: var(--zod-text-muted);
-    display: inline-flex;
-    height: 28px;
-    justify-content: center;
-    margin-left: auto;
-    width: 28px;
-    transition: all 0.2s ease;
-}
-
-.zod-module-card:hover .zod-module-card-arrow {
-    background: var(--zod-blue);
-    border-color: var(--zod-blue);
-    color: #ffffff;
-}
-
-/* ── Limits & Stats Section ────────────────────────────────── */
-.zod-modules-limits {
-    border-top: 1px solid var(--zod-border);
-    padding-top: 20px;
-}
-
-.zod-modules-limits h2 {
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    margin: 0 0 14px;
-}
-
-.zod-modules-limit-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.zod-limit-item {
-    background: var(--zod-surface);
-    border: 1px solid var(--zod-border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    transition: all 0.2s ease;
-}
-
-.zod-limit-item:hover {
-    border-color: var(--zod-border-hover);
-    background: var(--zod-surface-hover);
-}
-
-.zod-limit-item span {
-    color: var(--zod-text-muted);
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-}
-
-.zod-limit-item strong {
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 800;
-    font-family: var(--zod-font-mono);
-}
-
-@media (max-width: 980px) {
-    .zod-modules-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 680px) {
-    .zod-modules-hero {
-        align-items: stretch;
-        flex-direction: column;
-        padding: 20px;
-    }
-
-    .zod-modules-hero-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .zod-action-button {
-        justify-content: center;
-        padding: 0 12px;
-    }
-
-    .zod-modules-metrics,
-    .zod-modules-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ════════════════════════════════════════════════════════════
-   ZodPanel — Sleek Main Category Navigation Cards & Loading Bars
-   ════════════════════════════════════════════════════════════ */
-
-.main-menu {
-    background: transparent !important;
-    border: none !important;
-    padding: 16px 0 !important;
-}
-
-.main-menu-list {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
-    gap: 12px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    list-style: none !important;
-}
-
-.main-menu-item {
-    margin: 0 !important;
-}
-
-.main-menu-item-link {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    min-height: 94px !important;
-    padding: 14px 16px !important;
-    background: #121215 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
-    text-decoration: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.main-menu-item-link:hover {
-    background: #18181b !important;
-    border-color: rgba(99, 102, 241, 0.35) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
-}
-
-.main-menu-item-link.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, #121215 100%) !important;
-    border-color: #6366f1 !important;
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25) !important;
-}
-
-.main-menu-item-link.active::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 3px !important;
-    background: linear-gradient(90deg, #6366f1, #06b6d4) !important;
-}
-
-.main-menu-item-label {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.04em !important;
-    color: #ffffff !important;
-    margin: 0 0 6px 0 !important;
-}
-
-.main-menu-item-label i {
-    font-size: 14px !important;
-    color: #6366f1 !important;
-    opacity: 0.9 !important;
-}
-
-.main-menu-stats {
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 12px !important;
-    color: #a1a1aa !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    display: grid !important;
-    gap: 3px !important;
-}
-
-.main-menu-stats li {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-}
-
-/* Resource Progress Meter Bar */
-.zod-progress-meter {
-    height: 4px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-radius: 9999px !important;
-    overflow: hidden !important;
-    margin-top: 8px !important;
-    width: 100% !important;
-}
-
-.zod-progress-fill {
-    height: 100% !important;
-    background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%) !important;
-    border-radius: 9999px !important;
-    transition: width 0.4s ease !important;
-}
-
-/* ════════════════════════════════════════════════════════════
-   ZodPanel — Sleek Action Toolbar & Button Overrides
-   ════════════════════════════════════════════════════════════ */
-
-.toolbar {
-    background: transparent !important;
-    border: none !important;
-    padding: 12px 0 20px !important;
-}
-
-.toolbar-inner {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 16px !important;
-    flex-wrap: wrap !important;
-}
-
-.js-button-create,
-.button-secondary {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    min-height: 44px !important;
-    padding: 0 20px !important;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-    border: 1px solid #6366f1 !important;
-    border-radius: 8px !important;
-    color: #ffffff !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.js-button-create:hover,
-.button-secondary:hover {
-    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important;
-    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5) !important;
-    transform: translateY(-1px) !important;
-    color: #ffffff !important;
-}
-
-/* ════════════════════════════════════════════════════════════
-   ZodPanel — Sleek Website List Cards Architecture
-   ════════════════════════════════════════════════════════════ */
-
-.units-table {
-    display: grid !important;
-    gap: 16px !important;
-    background: transparent !important;
-    border: none !important;
-}
-
-.unit {
-    background: #121215 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 14px !important;
-    padding: 20px 24px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-bottom: 0 !important;
-}
-
-.unit:hover {
-    background: #18181b !important;
-    border-color: rgba(99, 102, 241, 0.35) !important;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Action Button Group inside Cards */
-.actions {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    margin-top: 14px !important;
-    padding-top: 14px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-.actions-button,
-.actions-item a {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 7px 14px !important;
-    background: #1c1c21 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px !important;
-    color: #e4e4e7 !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
+/* ── Modern Form Inputs ─────────────────────────────────────── */
+input[type="text"], input[type="password"], input[type="email"], select, textarea {
+    background: var(--zod-surface-soft) !important;
+    border: 1px solid var(--zod-border) !important;
+    border-radius: var(--zod-radius-sm) !important;
+    color: var(--zod-text) !important;
+    font-family: var(--zod-font-sans) !important;
+    padding: 10px 14px !important;
     transition: all 0.2s ease !important;
 }
 
-.actions-button:hover,
-.actions-item a:hover {
-    background: #27272a !important;
-    border-color: rgba(99, 102, 241, 0.35) !important;
-    color: #ffffff !important;
-    transform: translateY(-1px) !important;
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+    border-color: var(--zod-primary) !important;
+    box-shadow: 0 0 0 3px var(--zod-primary-glow) !important;
+    outline: none !important;
 }
 
-.actions-button.delete:hover,
-.actions-item.delete a:hover {
-    background: rgba(239, 68, 68, 0.15) !important;
-    border-color: rgba(239, 68, 68, 0.4) !important;
-    color: #ef4444 !important;
+/* ── Quick SSO Badges & Links ───────────────────────────────── */
+.zod-sso-badge {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 20px;
+    color: #c7d2fe;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    gap: 4px;
+    padding: 2px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Custom Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--zod-canvas);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--zod-surface-soft);
+    border-radius: 4px;
+    border: 1px solid var(--zod-border);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--zod-text-subtle);
 }
