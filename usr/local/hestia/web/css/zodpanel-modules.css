@@ -1,6 +1,6 @@
 /* ============================================================
-   ZodPanel Cloud OS — Unified Fitted SaaS Layout (v3.4)
-   100% Horizontal Alignment • Unified Container • Minimalist Login
+   ZodPanel Cloud OS — 100% Mobile-Fitted & Responsive Design (v3.5)
+   Desktop Table Grid • Mobile Bento Cards • Touch-Optimized
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -46,9 +46,10 @@ body {
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
     font-size: 13px !important;
+    overflow-x: hidden;
 }
 
-/* ── Uniform Width Container (100% Aligned on Left & Right) ── */
+/* ── Container Layout ───────────────────────────────────────── */
 .container,
 .top-bar-inner,
 .main-menu .container,
@@ -62,7 +63,7 @@ body {
     box-sizing: border-box !important;
 }
 
-/* ── Eliminate Default Theme Artifacts ──────────────────────── */
+/* ── Eliminate Default Artifacts ────────────────────────────── */
 .main-menu-item-link::after,
 .main-menu-item-link::before,
 .main-menu-stats,
@@ -98,12 +99,15 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
 }
 
 .top-bar-left {
     display: flex !important;
     align-items: center !important;
     gap: 16px !important;
+    flex-wrap: wrap !important;
 }
 
 .top-bar-logo img {
@@ -134,6 +138,18 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
+.top-bar-usage {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.top-bar-usage-inner {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
 .top-bar-usage-item {
     background: var(--zod-surface-soft) !important;
     border: 1px solid var(--zod-border) !important;
@@ -145,6 +161,21 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     gap: 5px !important;
+}
+
+.top-bar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.top-bar-menu-list {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .top-bar-menu-link {
@@ -168,7 +199,7 @@ body {
     color: #ffffff !important;
 }
 
-/* ── 2. COMPACT NAVIGATION TABS ─────────────────────────────── */
+/* ── 2. SCROLLABLE HORIZONTAL NAVIGATION ON MOBILE ──────────── */
 .main-menu {
     position: static !important;
     background: rgba(18, 18, 24, 0.8) !important;
@@ -181,12 +212,22 @@ body {
 
 .main-menu-list {
     display: flex !important;
-    flex-wrap: wrap !important;
     gap: 8px !important;
     align-items: center !important;
     margin: 0 !important;
     padding: 0 !important;
     list-style: none !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+.main-menu-list::-webkit-scrollbar {
+    display: none !important;
+}
+
+.main-menu-item {
+    flex: 0 0 auto !important;
 }
 
 .main-menu-item-link {
@@ -199,6 +240,7 @@ body {
     gap: 6px !important;
     text-decoration: none !important;
     transition: all 0.2s ease !important;
+    white-space: nowrap !important;
 }
 
 .main-menu-item-label {
@@ -210,21 +252,6 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-}
-
-.main-menu-item-label i {
-    font-size: 12px !important;
-    color: var(--zod-text-subtle) !important;
-}
-
-.main-menu-item-link:hover {
-    background: var(--zod-surface-hover) !important;
-    border-color: rgba(99, 102, 241, 0.35) !important;
-}
-
-.main-menu-item-link:hover .main-menu-item-label,
-.main-menu-item-link:hover .main-menu-item-label i {
-    color: #ffffff !important;
 }
 
 .main-menu-item-link.active {
@@ -279,28 +306,11 @@ body {
     transition: all 0.2s ease !important;
 }
 
-.button-secondary {
-    background: var(--zod-surface-card) !important;
-    border: 1px solid var(--zod-border) !important;
-    color: var(--zod-text) !important;
-}
-
-.button-secondary:hover {
-    background: var(--zod-surface-hover) !important;
-    border-color: var(--zod-border-hover) !important;
-    color: #ffffff !important;
-}
-
 .button-primary, .zod-action-primary, .js-button-create {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
     border: 1px solid #6366f1 !important;
     color: #ffffff !important;
     box-shadow: 0 3px 10px var(--zod-primary-glow) !important;
-}
-
-.button-primary:hover, .js-button-create:hover {
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5) !important;
-    background: linear-gradient(135deg, #7174f8 0%, #5b53f0 100%) !important;
 }
 
 .form-control, .form-select, input[type="search"], input[type="text"], input[type="password"], input[type="email"], select, textarea {
@@ -311,12 +321,6 @@ body {
     font-family: var(--zod-font-sans) !important;
     font-size: 12px !important;
     padding: 7px 12px !important;
-}
-
-.form-control:focus, .form-select:focus, input[type="search"]:focus, input[type="text"]:focus {
-    border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 0 2px var(--zod-primary-glow) !important;
-    outline: none !important;
 }
 
 /* ── 4. CHECKBOXES ──────────────────────────────────────────── */
@@ -337,10 +341,6 @@ input[type="checkbox"] {
     vertical-align: middle !important;
 }
 
-input[type="checkbox"]:hover {
-    border-color: var(--zod-primary) !important;
-}
-
 input[type="checkbox"]:checked {
     background: var(--zod-primary) !important;
     border-color: var(--zod-primary) !important;
@@ -358,101 +358,182 @@ input[type="checkbox"]:checked::after {
     line-height: 1 !important;
 }
 
-/* ── 5. PERFECTLY MATCHED & ALIGNED TABLE COLUMNS ───────────── */
-.units-table {
-    display: table !important;
-    width: 100% !important;
-    max-width: 1280px !important;
-    border-collapse: separate !important;
-    border-spacing: 0 8px !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    margin: 0 auto !important;
+/* ── 5. DESKTOP TABLE LAYOUT (>= 769px) ─────────────────────── */
+@media (min-width: 769px) {
+    .units-table {
+        display: table !important;
+        width: 100% !important;
+        max-width: 1280px !important;
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 auto !important;
+    }
+
+    .units-table-header {
+        display: table-row !important;
+        background: #111116 !important;
+        font-size: 11px !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        color: var(--zod-text-muted) !important;
+    }
+
+    .units-table-header .units-table-cell {
+        background: #111116 !important;
+        border-top: 1px solid var(--zod-border) !important;
+        border-bottom: 1px solid var(--zod-border) !important;
+        padding: 12px 14px !important;
+    }
+
+    .units-table-header .units-table-cell:first-child {
+        border-left: 1px solid var(--zod-border) !important;
+        border-top-left-radius: 8px !important;
+        border-bottom-left-radius: 8px !important;
+        width: 36px !important;
+        text-align: center !important;
+    }
+
+    .units-table-header .units-table-cell:last-child {
+        border-right: 1px solid var(--zod-border) !important;
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+    }
+
+    .units-table-row, .unit, .units {
+        display: table-row !important;
+        background: var(--zod-surface-card) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .units-table-row .units-table-cell,
+    .unit .units-table-cell,
+    .units .units-table-cell {
+        display: table-cell !important;
+        vertical-align: middle !important;
+        background: var(--zod-surface-card) !important;
+        border-top: 1px solid var(--zod-border) !important;
+        border-bottom: 1px solid var(--zod-border) !important;
+        padding: 12px 14px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .units-table-row .units-table-cell:first-child,
+    .unit .units-table-cell:first-child,
+    .units .units-table-cell:first-child {
+        border-left: 1px solid var(--zod-border) !important;
+        border-top-left-radius: 10px !important;
+        border-bottom-left-radius: 10px !important;
+        width: 36px !important;
+        text-align: center !important;
+    }
+
+    .units-table-row .units-table-cell:last-child,
+    .unit .units-table-cell:last-child,
+    .units .units-table-cell:last-child {
+        border-right: 1px solid var(--zod-border) !important;
+        border-top-right-radius: 10px !important;
+        border-bottom-right-radius: 10px !important;
+    }
+
+    .units-table-row:hover .units-table-cell,
+    .unit:hover .units-table-cell,
+    .units:hover .units-table-cell {
+        background: var(--zod-surface-hover) !important;
+        border-color: var(--zod-border-hover) !important;
+    }
+
+    .units-table-row:hover .units-table-cell:first-child,
+    .unit:hover .units-table-cell:first-child,
+    .units:hover .units-table-cell:first-child {
+        box-shadow: inset 3px 0 0 var(--zod-primary) !important;
+    }
 }
 
-.units-table-header {
-    display: table-row !important;
-    background: #111116 !important;
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
-    color: var(--zod-text-muted) !important;
+/* ── 6. MOBILE BENTO CARD RESPONSIVE LAYOUT (<= 768px) ──────── */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .top-bar-usage-inner {
+        gap: 6px !important;
+    }
+
+    .top-bar-usage-item {
+        font-size: 10px !important;
+        padding: 3px 8px !important;
+    }
+
+    .toolbar-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .button-primary, .js-button-create {
+        width: 100% !important;
+    }
+
+    .units-table {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .units-table-header {
+        display: none !important;
+    }
+
+    .units-table-row, .unit, .units {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--zod-surface-card) !important;
+        border: 1px solid var(--zod-border) !important;
+        border-radius: 12px !important;
+        padding: 14px !important;
+        gap: 8px !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .units-table-cell {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 2px 0 !important;
+        width: 100% !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .units-table-cell:first-child {
+        width: auto !important;
+    }
+
+    .units-table-row-actions {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        padding-top: 10px !important;
+        margin-top: 6px !important;
+        border-top: 1px solid var(--zod-border-subtle) !important;
+        justify-content: flex-start !important;
+    }
+
+    .units-table-row-action-link,
+    .units-table-row-action a {
+        width: 32px !important;
+        height: 32px !important;
+    }
 }
 
-.units-table-header .units-table-cell {
-    background: #111116 !important;
-    border-top: 1px solid var(--zod-border) !important;
-    border-bottom: 1px solid var(--zod-border) !important;
-    padding: 12px 14px !important;
-}
-
-.units-table-header .units-table-cell:first-child {
-    border-left: 1px solid var(--zod-border) !important;
-    border-top-left-radius: 8px !important;
-    border-bottom-left-radius: 8px !important;
-    width: 36px !important;
-    text-align: center !important;
-}
-
-.units-table-header .units-table-cell:last-child {
-    border-right: 1px solid var(--zod-border) !important;
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
-}
-
-.units-table-row, .unit, .units {
-    display: table-row !important;
-    background: var(--zod-surface-card) !important;
-    transition: all 0.2s ease !important;
-}
-
-.units-table-row .units-table-cell,
-.unit .units-table-cell,
-.units .units-table-cell {
-    display: table-cell !important;
-    vertical-align: middle !important;
-    background: var(--zod-surface-card) !important;
-    border-top: 1px solid var(--zod-border) !important;
-    border-bottom: 1px solid var(--zod-border) !important;
-    padding: 12px 14px !important;
-    transition: all 0.2s ease !important;
-}
-
-.units-table-row .units-table-cell:first-child,
-.unit .units-table-cell:first-child,
-.units .units-table-cell:first-child {
-    border-left: 1px solid var(--zod-border) !important;
-    border-top-left-radius: 10px !important;
-    border-bottom-left-radius: 10px !important;
-    width: 36px !important;
-    text-align: center !important;
-}
-
-.units-table-row .units-table-cell:last-child,
-.unit .units-table-cell:last-child,
-.units .units-table-cell:last-child {
-    border-right: 1px solid var(--zod-border) !important;
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
-}
-
-/* Hover Glow for the Entire Row */
-.units-table-row:hover .units-table-cell,
-.unit:hover .units-table-cell,
-.units:hover .units-table-cell {
-    background: var(--zod-surface-hover) !important;
-    border-color: var(--zod-border-hover) !important;
-}
-
-.units-table-row:hover .units-table-cell:first-child,
-.unit:hover .units-table-cell:first-child,
-.units:hover .units-table-cell:first-child {
-    box-shadow: inset 3px 0 0 var(--zod-primary) !important;
-}
-
-/* ── 6. SLEEK MICRO ACTION BUTTONS (NO TEXT OVERLAP) ────────── */
+/* ── 7. MICRO ACTION BUTTONS ────────────────────────────────── */
 .units-table-row-actions,
 .data-controls,
 .actions {
@@ -464,7 +545,6 @@ input[type="checkbox"]:checked::after {
     list-style: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    vertical-align: middle !important;
 }
 
 .units-table-row-actions span,
@@ -508,11 +588,7 @@ input[type="checkbox"]:checked::after {
     transform: translateY(-1px) scale(1.05) !important;
 }
 
-.units-table-row-action a:hover i {
-    color: #ffffff !important;
-}
-
-/* ── 7. STATUS BADGES ───────────────────────────────────────── */
+/* ── 8. STATUS BADGES ───────────────────────────────────────── */
 .icon-green, .fas.fa-check, .fa-check-circle {
     color: var(--zod-green) !important;
     filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
@@ -523,7 +599,7 @@ input[type="checkbox"]:checked::after {
     opacity: 0.4;
 }
 
-/* ── 8. FOOTER ──────────────────────────────────────────────── */
+/* ── 9. FOOTER ──────────────────────────────────────────────── */
 .app-footer {
     border-top: 1px solid var(--zod-border) !important;
     color: var(--zod-text-subtle) !important;
