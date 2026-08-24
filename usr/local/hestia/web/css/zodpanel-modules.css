@@ -1,20 +1,20 @@
 /* ============================================================
-   ZodPanel Cloud OS — Sexy, Modern & High-End UX Design (v3.1)
-   Generous Spacing • Zero Overlap • Permanent Visible Actions
+   ZodPanel Cloud OS — Pixel-Perfect Fitted SaaS Design (v3.2)
+   Compact Typography • Perfect Grid Alignment • Sleek Micro-Icons
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
     --zod-canvas: #09090c;
     --zod-surface: #111116;
-    --zod-surface-card: #15151c;
-    --zod-surface-hover: #1c1c26;
-    --zod-surface-soft: #191922;
+    --zod-surface-card: #14141a;
+    --zod-surface-hover: #1a1a24;
+    --zod-surface-soft: #181820;
     
     --zod-border: rgba(255, 255, 255, 0.08);
     --zod-border-hover: rgba(99, 102, 241, 0.45);
-    --zod-border-subtle: rgba(255, 255, 255, 0.04);
+    --zod-border-subtle: rgba(255, 255, 255, 0.03);
     
     --zod-text: #f4f4f7;
     --zod-text-muted: #a1a1aa;
@@ -32,9 +32,10 @@
     
     --zod-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --zod-font-mono: 'JetBrains Mono', monospace;
-    --zod-radius-sm: 8px;
-    --zod-radius: 12px;
-    --zod-radius-lg: 16px;
+    --zod-radius-xs: 4px;
+    --zod-radius-sm: 6px;
+    --zod-radius: 10px;
+    --zod-radius-lg: 14px;
     --zod-radius-pill: 9999px;
 }
 
@@ -44,11 +45,10 @@ body {
     font-family: var(--zod-font-sans) !important;
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
-    min-height: 100vh;
-    padding-top: 0 !important;
+    font-size: 13px !important;
 }
 
-/* ── Eliminate Default Theme Pink Lines / Borders / Artifacts ─ */
+/* ── Eliminate Default Theme Artifacts ──────────────────────── */
 .main-menu-item-link::after,
 .main-menu-item-link::before,
 .main-menu-stats,
@@ -56,19 +56,16 @@ body {
 .zod-progress-fill {
     display: none !important;
     content: none !important;
-    background: none !important;
-    border: none !important;
 }
 
-/* ── 1. HEADER & TOP BAR (PERFECT SEPARATION & NO OVERLAP) ──── */
+/* ── 1. HEADER & BRAND BAR (COMPACT & SLEEK) ────────────────── */
 .app-header {
     background: transparent !important;
     position: static !important;
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    margin-bottom: 24px !important;
-    box-shadow: none !important;
+    margin-bottom: 16px !important;
 }
 
 .top-bar {
@@ -77,8 +74,8 @@ body {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--zod-border) !important;
-    padding: 14px 0 !important;
-    min-height: 64px !important;
+    padding: 10px 0 !important;
+    min-height: 54px !important;
     display: block !important;
     width: 100% !important;
 }
@@ -93,10 +90,9 @@ body {
 .top-bar-left {
     display: flex !important;
     align-items: center !important;
-    gap: 24px !important;
+    gap: 18px !important;
 }
 
-/* Hide legacy Hestia image, display sleek ZODPANEL cloud logo */
 .top-bar-logo img {
     display: none !important;
 }
@@ -104,13 +100,13 @@ body {
 .top-bar-logo {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     text-decoration: none !important;
 }
 
 .top-bar-logo::before {
     content: '⚡';
-    font-size: 18px;
+    font-size: 16px;
     filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
 }
 
@@ -118,23 +114,11 @@ body {
     content: 'ZODPANEL';
     font-family: var(--zod-font-sans);
     font-weight: 900;
-    font-size: 19px;
+    font-size: 16px;
     letter-spacing: -0.02em;
     background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-/* Top Bar Stats / Usage Pills */
-.top-bar-usage {
-    display: flex !important;
-    align-items: center !important;
-}
-
-.top-bar-usage-inner {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
 }
 
 .top-bar-usage-item {
@@ -142,35 +126,12 @@ body {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-pill) !important;
     color: var(--zod-text-muted) !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
-    padding: 6px 16px !important;
+    padding: 4px 12px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    transition: all 0.2s ease;
-}
-
-.top-bar-usage-item:hover {
-    border-color: var(--zod-primary) !important;
-    color: #ffffff !important;
-    background: rgba(99, 102, 241, 0.1) !important;
-}
-
-/* Top Bar Right Menu Controls */
-.top-bar-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-.top-bar-menu-list {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    gap: 5px !important;
 }
 
 .top-bar-menu-link {
@@ -178,31 +139,29 @@ body {
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text-muted) !important;
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    font-size: 12px !important;
     text-decoration: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s ease !important;
 }
 
 .top-bar-menu-link:hover, .top-bar-menu-link.active {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-primary) !important;
     color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* ── 2. MAIN NAVIGATION (SEPARATED WITH PROPER SPACING) ──────── */
+/* ── 2. COMPACT NAVIGATION TABS ─────────────────────────────── */
 .main-menu {
     position: static !important;
     background: rgba(18, 18, 24, 0.8) !important;
     border-bottom: 1px solid var(--zod-border) !important;
     backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    padding: 12px 0 !important;
+    padding: 8px 0 !important;
     display: block !important;
     width: 100% !important;
 }
@@ -210,50 +169,44 @@ body {
 .main-menu-list {
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 10px !important;
+    gap: 8px !important;
     align-items: center !important;
     margin: 0 !important;
     padding: 0 !important;
     list-style: none !important;
 }
 
-.main-menu-item {
-    flex: 0 0 auto !important;
-}
-
 .main-menu-item-link {
     background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
-    padding: 9px 20px !important;
+    padding: 6px 14px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     text-decoration: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s ease !important;
 }
 
 .main-menu-item-label {
     color: var(--zod-text-muted) !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.03em !important;
     margin: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
 }
 
 .main-menu-item-label i {
-    font-size: 14px !important;
+    font-size: 12px !important;
     color: var(--zod-text-subtle) !important;
-    transition: color 0.2s ease;
 }
 
 .main-menu-item-link:hover {
     background: var(--zod-surface-hover) !important;
-    border-color: rgba(99, 102, 241, 0.4) !important;
-    transform: translateY(-1px) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
 }
 
 .main-menu-item-link:hover .main-menu-item-label,
@@ -264,7 +217,7 @@ body {
 .main-menu-item-link.active {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
     border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 18px var(--zod-primary-glow), inset 0 0 0 1px rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 0 12px var(--zod-primary-glow) !important;
 }
 
 .main-menu-item-link.active .main-menu-item-label {
@@ -275,44 +228,38 @@ body {
     color: #a5b4fc !important;
 }
 
-/* ── 3. MODERN ACTION TOOLBAR ───────────────────────────────── */
+/* ── 3. MODERN FITTED ACTION TOOLBAR ────────────────────────── */
 .toolbar {
     background: var(--zod-surface) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius) !important;
-    padding: 14px 20px !important;
-    margin: 24px 0 20px !important;
+    padding: 10px 16px !important;
+    margin: 16px 0 !important;
     backdrop-filter: blur(16px) !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
 .toolbar-inner {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 16px !important;
+    gap: 12px !important;
     flex-wrap: wrap !important;
-}
-
-.toolbar-buttons {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
 }
 
 .button, .btn, .zod-action-button {
     border-radius: var(--zod-radius-sm) !important;
     font-family: var(--zod-font-sans) !important;
     font-weight: 600 !important;
-    font-size: 13px !important;
-    padding: 9px 20px !important;
-    min-height: 40px !important;
+    font-size: 12px !important;
+    padding: 7px 14px !important;
+    min-height: 34px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     text-decoration: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s ease !important;
 }
 
 .button-secondary {
@@ -325,75 +272,67 @@ body {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-border-hover) !important;
     color: #ffffff !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3) !important;
 }
 
 .button-primary, .zod-action-primary, .js-button-create {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
     border: 1px solid #6366f1 !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 14px var(--zod-primary-glow) !important;
+    box-shadow: 0 3px 10px var(--zod-primary-glow) !important;
 }
 
 .button-primary:hover, .js-button-create:hover {
-    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55) !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5) !important;
     background: linear-gradient(135deg, #7174f8 0%, #5b53f0 100%) !important;
-    transform: translateY(-1px) !important;
 }
 
-/* ── 4. MODERN FORM CONTROLS & SEARCH ───────────────────────── */
 .form-control, .form-select, input[type="search"], input[type="text"], input[type="password"], input[type="email"], select, textarea {
     background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
     border-radius: var(--zod-radius-sm) !important;
     color: var(--zod-text) !important;
     font-family: var(--zod-font-sans) !important;
-    font-size: 13px !important;
-    padding: 9px 14px !important;
-    transition: all 0.2s ease !important;
+    font-size: 12px !important;
+    padding: 7px 12px !important;
 }
 
 .form-control:focus, .form-select:focus, input[type="search"]:focus, input[type="text"]:focus {
     border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 0 3px var(--zod-primary-glow) !important;
+    box-shadow: 0 0 0 2px var(--zod-primary-glow) !important;
     outline: none !important;
 }
 
-/* ── 5. CHECKBOXES ──────────────────────────────────────────── */
+/* ── 4. CHECKBOXES ──────────────────────────────────────────── */
 input[type="checkbox"] {
     -webkit-appearance: none !important;
     appearance: none !important;
-    width: 18px !important;
-    height: 18px !important;
+    width: 16px !important;
+    height: 16px !important;
     background: var(--zod-surface-card) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 5px !important;
+    border-radius: 4px !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     position: relative !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     margin: 0 !important;
     vertical-align: middle !important;
 }
 
 input[type="checkbox"]:hover {
     border-color: var(--zod-primary) !important;
-    background: var(--zod-surface-hover) !important;
 }
 
 input[type="checkbox"]:checked {
     background: var(--zod-primary) !important;
     border-color: var(--zod-primary) !important;
-    box-shadow: 0 0 8px var(--zod-primary-glow) !important;
 }
 
 input[type="checkbox"]:checked::after {
     content: '✓' !important;
     color: #ffffff !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 900 !important;
     position: absolute !important;
     top: 50% !important;
@@ -402,11 +341,11 @@ input[type="checkbox"]:checked::after {
     line-height: 1 !important;
 }
 
-/* ── 6. SEPARATED CARD-STYLE LIST ROWS WITH VISIBLE ACTIONS ─── */
+/* ── 5. SEPARATED COMPACT BENTO CARD ROWS ───────────────────── */
 .units-table {
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 8px !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -416,66 +355,79 @@ input[type="checkbox"]:checked::after {
 .units-table-header {
     background: #111116 !important;
     border: 1px solid var(--zod-border) !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     font-size: 11px !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.06em !important;
     color: var(--zod-text-muted) !important;
-    padding: 14px 20px !important;
+    padding: 10px 18px !important;
 }
 
 .units-table-row, .unit, .units {
     background: var(--zod-surface-card) !important;
     border: 1px solid var(--zod-border) !important;
-    border-radius: var(--zod-radius) !important;
-    padding: 18px 22px !important;
-    margin-bottom: 8px !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 10px !important;
+    padding: 12px 18px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
     position: relative !important;
 }
 
 .units-table-row:hover, .unit:hover, .units:hover {
     background: var(--zod-surface-hover) !important;
     border-color: var(--zod-border-hover) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), inset 3px 0 0 var(--zod-primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 2px 0 0 var(--zod-primary) !important;
 }
 
-/* ── 7. PERMANENTLY VISIBLE QUICK ACTION BADGES (NO HOVER HIDE) ─ */
+/* ── 6. SLEEK MICRO ACTION BUTTONS (NO TEXT OVERLAP) ────────── */
 .units-table-row-actions,
 .data-controls,
 .actions {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
     opacity: 1 !important;
     visibility: visible !important;
     list-style: none !important;
-    margin: 0 !important;
+    margin: 0 0 0 10px !important;
     padding: 0 !important;
+    vertical-align: middle !important;
+}
+
+/* HIDE any overlapping span text labels inside action buttons */
+.units-table-row-actions span,
+.units-table-row-action span,
+.units-table-row-action-link span,
+.data-controls span,
+.actions span {
+    display: none !important;
 }
 
 .units-table-row-action {
     display: inline-flex !important;
     list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .units-table-row-action-link,
 .units-table-row-action a {
     background: rgba(255, 255, 255, 0.04) !important;
     border: 1px solid var(--zod-border) !important;
-    border-radius: var(--zod-radius-sm) !important;
-    width: 32px !important;
-    height: 32px !important;
+    border-radius: var(--zod-radius-xs) !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: var(--zod-text) !important;
-    font-size: 13px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color: var(--zod-text-muted) !important;
+    font-size: 11px !important;
+    transition: all 0.15s ease !important;
     text-decoration: none !important;
+    padding: 0 !important;
 }
 
 .units-table-row-action-link:hover,
@@ -483,36 +435,29 @@ input[type="checkbox"]:checked::after {
     background: var(--zod-primary) !important;
     border-color: var(--zod-primary) !important;
     color: #ffffff !important;
-    transform: translateY(-2px) scale(1.08) !important;
-    box-shadow: 0 4px 12px var(--zod-primary-glow) !important;
+    transform: translateY(-1px) scale(1.05) !important;
 }
 
-/* Distinct Action Colors on Hover */
-.units-table-row-action a:hover .icon-maroon,
-.units-table-row-action a:hover .icon-lightblue,
-.units-table-row-action a:hover .icon-yellow,
-.units-table-row-action a:hover .icon-blue,
-.units-table-row-action a:hover .icon-green,
-.units-table-row-action a:hover .icon-red {
+.units-table-row-action a:hover i {
     color: #ffffff !important;
 }
 
-/* ── 8. STATUS BADGES ───────────────────────────────────────── */
+/* ── 7. STATUS BADGES ───────────────────────────────────────── */
 .icon-green, .fas.fa-check, .fa-check-circle {
     color: var(--zod-green) !important;
-    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.45));
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
 }
 
 .icon-red, .fas.fa-xmark, .fa-times-circle {
     color: var(--zod-text-subtle) !important;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
-/* ── 9. FOOTER ──────────────────────────────────────────────── */
+/* ── 8. FOOTER ──────────────────────────────────────────────── */
 .app-footer {
     border-top: 1px solid var(--zod-border) !important;
     color: var(--zod-text-subtle) !important;
-    font-size: 12px !important;
-    padding: 24px 0 !important;
-    margin-top: 40px !important;
+    font-size: 11px !important;
+    padding: 18px 0 !important;
+    margin-top: 30px !important;
 }
