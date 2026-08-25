@@ -77,20 +77,31 @@ class WordPressSetup extends BaseSetup {
             "--force",
         ]);
 
-        // WordPress CLI seems to have a bug that when site name has a space it will be seen as an
-        // extra argument. Even when properly escaped. For now just install with install.php
-        $this->appcontext->sendPostRequest(
-            $target->getUrl() .
-                "/" .
-                $options["install_directory"] .
-                "/wp-admin/install.php?step=2",
-            [
-                "weblog_title" => $options["site_name"],
-                "user_name" => $options["username"],
-                "admin_password" => $options["password"],
-                "admin_password2" => $options["password"],
-                "admin_email" => $options["email"],
-            ],
-        );
+        $siteUrl = $target->getUrl() . (!empty($options["install_directory"]) ? "/" . $options["install_directory"] : "");
+
+        try {
+            $this->appcontext->runWp($options["php_version"], [
+                "core",
+                "install",
+                "--url=" . $siteUrl,
+                "--title=" . $options["site_name"],
+                "--admin_user=" . $options["username"],
+                "--admin_password=" . $options["password"],
+                "--admin_email=" . $options["email"],
+                "--path=" . $target->getDocRoot(),
+                "--skip-email",
+            ]);
+        } catch (\Throwable $e) {
+            $this->appcontext->sendPostRequest(
+                $siteUrl . "/wp-admin/install.php?step=2",
+                [
+                    "weblog_title" => $options["site_name"],
+                    "user_name" => $options["username"],
+                    "admin_password" => $options["password"],
+                    "admin_password2" => $options["password"],
+                    "admin_email" => $options["email"],
+                ],
+            );
+        }
     }
 }

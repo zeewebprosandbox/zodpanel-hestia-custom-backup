@@ -57,38 +57,47 @@ abstract class BaseSetup implements InstallerInterface
 
     private function setupWebServer(string $domainName, string $phpVersion): void
     {
-        if ($_SESSION['WEB_SYSTEM'] === 'nginx') {
-            if (isset($this->config['server']['nginx']['template'])) {
-                $this->appcontext->changeWebTemplate(
-                    $domainName,
-                    $this->config['server']['nginx']['template'],
-                );
-            } else {
+        // Try web template from config if exists, otherwise fallback to default
+        $targetTemplate = 'default';
+        if (isset($this->config['server']['nginx']['template'])) {
+            $targetTemplate = $this->config['server']['nginx']['template'];
+        } elseif (isset($this->config['server']['apache2']['template'])) {
+            $targetTemplate = $this->config['server']['apache2']['template'];
+        }
+
+        try {
+            $this->appcontext->changeWebTemplate($domainName, $targetTemplate);
+        } catch (\Throwable $e) {
+            try {
                 $this->appcontext->changeWebTemplate($domainName, 'default');
-            }
-        } else {
-            if (isset($this->config['server']['apache2']['template'])) {
-                $this->appcontext->changeWebTemplate(
-                    $domainName,
-                    $this->config['server']['apache2']['template'],
-                );
-            } else {
-                $this->appcontext->changeWebTemplate($domainName, 'default');
+            } catch (\Throwable $ex) {
+                // Keep domain's current template
             }
         }
-        if ($_SESSION['WEB_BACKEND'] === 'php-fpm') {
+
+        if (!empty($_SESSION['PROXY_SYSTEM']) && $_SESSION['PROXY_SYSTEM'] === 'nginx') {
+            if (isset($this->config['server']['nginx']['template'])) {
+                try {
+                    $this->appcontext->runUser('v-change-web-domain-proxy-tpl', [$domainName, $this->config['server']['nginx']['template']]);
+                } catch (\Throwable $e) {
+                    // Ignore if proxy template not matched
+                }
+            }
+        }
+
+        if (!empty($_SESSION['WEB_BACKEND']) && $_SESSION['WEB_BACKEND'] === 'php-fpm') {
             if (isset($this->config['server']['php']['supported'])) {
                 $supportedPHPVersions = $this->appcontext->getSupportedPHPVersions(
                     $this->config['server']['php']['supported'],
                 );
-                if (empty($supportedPHPVersions)) {
-                    throw new RuntimeException('Required PHP version is not supported');
+                if (!empty($supportedPHPVersions)) {
+                    $backendTpl = 'PHP-' . str_replace('.', '_', $phpVersion);
+                    try {
+                        $this->appcontext->changeBackendTemplate($domainName, $backendTpl);
+                    } catch (\Throwable $e) {
+                        // Fallback to default
+                    }
                 }
-                //convert from x.x to PHP-x_x to accepted.
-                $this->appcontext->changeBackendTemplate(
-                    $domainName,
-                    'PHP-' . str_replace('.', '_', $phpVersion),
-                );
             }
         }
     }
