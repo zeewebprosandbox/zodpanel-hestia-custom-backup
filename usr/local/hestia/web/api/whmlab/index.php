@@ -502,7 +502,7 @@ function whmpanel_sync_mail_ssl(string $user, string $domain, string $nodeIp): a
 		];
 	}
 
-	$ssl = whmpanel_run_soft(["v-add-letsencrypt-domain", $user, $domain, "", "yes"]);
+	$ssl = whmpanel_run_soft(["v-add-mail-domain-ssl", $user, $domain]);
 	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
 	$mailData = $mailDomain["data"][$domain] ?? [];
 	$installed = $ssl["success"] || (($mailData["SSL"] ?? "no") === "yes");
@@ -1543,8 +1543,8 @@ function whmpanel_repair_mail_delivery(string $user, string $domain, array $inpu
 
 	$dkim = whmpanel_mail_dkim_dns_record($user, $domain);
 	$dns = !empty($input["skip_dns_repair"]) ? null : whmpanel_repair_dns_records($user, $domain, $input);
-	$rebuild = whmpanel_run_soft(["v-rebuild-mail-domain", $user, $domain, "yes"]);
-	$ssl = whmpanel_sync_mail_ssl($user, $domain, $nodeIp);
+	$rebuild = whmpanel_run_soft(["v-rebuild-mail-domain", $user, $domain, "no"]);
+	$ssl = !empty($input["skip_ssl_repair"]) ? ["installed" => false, "message" => "SSL repair skipped"] : whmpanel_sync_mail_ssl($user, $domain, $nodeIp);
 	$compliance = whmpanel_mail_domain_compliance($user, $domain, (int) ($input["rate_limit"] ?? 200));
 	$mailDomain = whmpanel_run_soft(["v-list-mail-domain", $user, $domain], true);
 	$diagnostics = whmpanel_mail_deliverability_diagnostics($user, $domain, $nodeIp);
